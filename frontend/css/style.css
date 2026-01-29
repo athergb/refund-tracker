@@ -338,3 +338,39 @@ input[readonly] {
         flex-direction: column;
     }
 }
+
+/* Dashboard Button Spacing */
+.dashboard-actions {
+    display: flex;
+    gap: 15px; /* Space between buttons */
+    align-items: center;
+}
+
+.dashboard-actions .btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dashboard-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-add-ticket {
+    background: #667eea;
+    color: white;
+}
+
+.btn-export {
+    background: #28a745;
+    color: white;
+}
