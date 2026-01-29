@@ -13,8 +13,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Supabase Configuration
-const supabaseUrl = process.env.SUPABASE_URL || 'YOUR_SUPABASE_URL_HERE';
-const supabaseKey = process.env.SUPABASE_KEY || 'YOUR_SUPABASE_ANON_KEY_HERE';
+const supabaseUrl = process.env.SUPABASE_URL || 'https://lnvutfwzbsjvagipqgqb.supabase.co';
+const supabaseKey = process.env.SUPABASE_KEY || 'sb_publishable_FZSF6k_x1UZYEKDn_N0CBQ_vnxdF1Yn';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 console.log('✅ Connected to Supabase Database');
