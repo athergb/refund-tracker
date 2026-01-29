@@ -120,6 +120,277 @@
         </table>
     </div>
     
-    <script src="js/dashboard.js"></script>
+	 <script>
+        // Correct data structure - each property matches its correct column
+        const refundTickets = [
+            {
+                srNo: 1,
+                ticketNumber: "TKT-2024-001",
+                pnr: "2V7BUA",
+                passengerName: "Mr. Test Passenger",
+                travelDate: "2026-02-21",
+                expiryDate: "2026-01-31",
+                vendor: "RYL",
+                vendorAmount: "10,000",
+                status: "PENDING"
+            },
+            {
+                srNo: 2,
+                ticketNumber: "TKT-2024-002",
+                pnr: "EAYL95",
+                passengerName: "Mr. Muhammad Ibraheem",
+                travelDate: "2026-02-21",
+                expiryDate: "2026-03-07",
+                vendor: "QTB",
+                vendorAmount: "37,349",
+                status: "REFUNDED"
+            },
+            {
+                srNo: 3,
+                ticketNumber: "TKT-2024-003",
+                pnr: "8C8LF9",
+                passengerName: "Mr. Hussain Muzaffar",
+                travelDate: "2026-02-21",
+                expiryDate: "2026-03-14",
+                vendor: "RYL",
+                vendorAmount: "29,548",
+                status: "PENDING"
+            }
+        ];
+
+        // Function to check if a ticket is expiring soon (within 3 days)
+        function isExpiringSoon(expiryDate) {
+            const today = new Date();
+            const expiry = new Date(expiryDate);
+            const diffTime = expiry - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays <= 3 && diffDays >= 0;
+        }
+
+        // Function to check if a ticket is expired
+        function isExpired(expiryDate) {
+            const today = new Date();
+            const expiry = new Date(expiryDate);
+            return expiry < today;
+        }
+
+        // Function to format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Function to populate the table with CORRECT data mapping
+        function populateTable() {
+            const tableBody = document.getElementById('ticketsBody');
+            tableBody.innerHTML = '';
+            
+            let totalAmount = 0;
+            let expiringCount = 0;
+            
+            refundTickets.forEach(ticket => {
+                const row = document.createElement('tr');
+                
+                // Calculate totals
+                const amount = parseInt(ticket.vendorAmount.replace(/,/g, '')) || 0;
+                totalAmount += amount;
+                
+                // Check expiry
+                let expiryClass = '';
+                let expiryDisplay = formatDate(ticket.expiryDate);
+                
+                if (isExpired(ticket.expiryDate)) {
+                    expiryClass = 'expiring';
+                    expiryDisplay = '⚠️ ' + expiryDisplay + ' (Expired)';
+                } else if (isExpiringSoon(ticket.expiryDate)) {
+                    expiryClass = 'expiring';
+                    expiryDisplay = '⏰ ' + expiryDisplay + ' (Soon)';
+                    expiringCount++;
+                }
+                
+                // Status badge
+                let statusClass = '';
+                let statusText = ticket.status;
+                
+                if (ticket.status === 'PENDING') {
+                    statusClass = 'status-pending';
+                } else if (ticket.status === 'REFUNDED') {
+                    statusClass = 'status-refunded';
+                } else if (ticket.status === 'PROCESSING') {
+                    statusClass = 'status-processing';
+                }
+                
+                // CORRECT DATA MAPPING - Each property goes to its correct column
+                row.innerHTML = `
+                    <td>${ticket.srNo}</td>
+                    <td>${ticket.ticketNumber}</td>
+                    <td>${ticket.pnr}</td>
+                    <td>${ticket.passengerName}</td>
+                    <td>${formatDate(ticket.travelDate)}</td>
+                    <td class="${expiryClass}">${expiryDisplay}</td>
+                    <td>${ticket.vendor}</td>
+                    <td>₹${ticket.vendorAmount}</td>
+                    <td><span class="${statusClass}">${statusText}</span></td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Update statistics
+            document.getElementById('totalTickets').textContent = refundTickets.length;
+            document.getElementById('expiringCount').textContent = expiringCount;
+            document.getElementById('totalAmount').textContent = `₹${totalAmount.toLocaleString()}`;
+        }
+
+        // Function to export to Excel
+        function exportToExcel() {
+            let csv = [];
+            const headers = ["SR NO", "Ticket Number", "PNR", "Passenger Name", "Travel Date", "Expiry Date", "Vendor", "Vendor Amount", "Status"];
+            csv.push(headers.join(","));
+            
+            refundTickets.forEach(ticket => {
+                const row = [
+                    ticket.srNo,
+                    ticket.ticketNumber,
+                    ticket.pnr,
+                    `"${ticket.passengerName}"`,
+                    ticket.travelDate,
+                    ticket.expiryDate,
+                    ticket.vendor,
+                    ticket.vendorAmount.replace(/,/g, ''),
+                    ticket.status
+                ];
+                csv.push(row.join(","));
+            });
+            
+            const csvString = csv.join("\n");
+            const blob = new Blob([csvString], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `refund_tickets_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            // Show notification
+            showNotification('Data exported successfully!', 'success');
+        }
+
+        // Function to show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                background: ${type === 'success' ? '#10b981' : '#667eea'};
+                color: white;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Add CSS animations for notification
+        const style = document.createElement('style');
+        style.textContent = `
+            .status-pending {
+                background: #fef3c7;
+                color: #d97706;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                display: inline-block;
+            }
+            
+            .status-refunded {
+                background: #d1fae5;
+                color: #065f46;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                display: inline-block;
+            }
+            
+            .status-processing {
+                background: #dbeafe;
+                color: #1e40af;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                display: inline-block;
+            }
+            
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            populateTable();
+            
+            // Add refresh button functionality
+            const refreshBtn = document.createElement('button');
+            refreshBtn.className = 'btn';
+            refreshBtn.innerHTML = '🔄 Refresh';
+            refreshBtn.style.background = '#f59e0b';
+            refreshBtn.onclick = function() {
+                refreshBtn.innerHTML = '🔄 Refreshing...';
+                refreshBtn.disabled = true;
+                
+                setTimeout(() => {
+                    populateTable();
+                    refreshBtn.innerHTML = '🔄 Refresh';
+                    refreshBtn.disabled = false;
+                    showNotification('Data refreshed successfully!', 'success');
+                }, 1000);
+            };
+            
+            document.querySelector('.dashboard-actions').appendChild(refreshBtn);
+        });
+
+    </script>
 </body>
 </html>
