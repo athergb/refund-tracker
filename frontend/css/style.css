@@ -1,84 +1,217 @@
-/* Add these to your existing style.css */
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 15px;
+}
+
+.container {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Header - Keep as is */
 .header {
     text-align: center;
-    color: #333;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
 }
 
 .header h1 {
     color: #2c3e50;
-    margin-bottom: 10px;
-    font-size: 28px;
+    margin-bottom: 5px;
+    font-size: 26px;
 }
 
 .header p {
     color: #7f8c8d;
+    font-size: 15px;
+}
+
+/* Form Sections - Reduced spacing */
+.form-section {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border-left: 3px solid #667eea;
+}
+
+.form-section h3 {
+    color: #333;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e0e0e0;
     font-size: 16px;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 20px auto;
-    padding: 30px;
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+/* Form Rows - Tighter grid */
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 10px;
+    margin-bottom: 8px;
 }
 
-/* Make form labels more visible */
+.form-group {
+    margin-bottom: 10px;
+}
+
 .form-group label {
     display: block;
-    margin-bottom: 8px;
-    color: #2c3e50;
+    margin-bottom: 5px;
     font-weight: 600;
-    font-size: 14px;
+    color: #333;
+    font-size: 13px;
 }
 
-/* Required field indicator */
 .form-group label.required::after {
     content: " *";
-    color: #e74c3c;
+    color: #ff4757;
 }
 
-/* Better input styling */
+/* Input Fields */
 input, select, textarea {
-    padding: 12px 15px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 16px;
-    transition: all 0.3s;
-    background: #fff;
+    width: 100%;
+    padding: 9px 11px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+    background: white;
 }
 
 input:focus, select:focus, textarea:focus {
-    border-color: #3498db;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
     outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
 }
 
-/* Readonly field styling */
+/* Amount Section */
+.amount-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    background: #f0f8ff;
+    padding: 12px;
+    border-radius: 6px;
+    margin: 12px 0;
+}
+
+/* Buttons - Keep as is */
+.btn-group {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 18px;
+}
+
+.btn {
+    padding: 11px 22px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(102, 126, 234, 0.25);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+/* Dashboard Link */
+.dashboard-link {
+    display: block;
+    text-align: center;
+    margin-top: 12px;
+    color: #667eea;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 8px;
+}
+
+.dashboard-link:hover {
+    text-decoration: underline;
+}
+
+/* Notification */
+.notification {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    padding: 10px 18px;
+    border-radius: 6px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    z-index: 1000;
+    display: none;
+    font-size: 13px;
+}
+
+.notification.success {
+    background: #00b894;
+}
+
+.notification.error {
+    background: #ff4757;
+}
+
+/* Readonly field */
 input[readonly] {
-    background-color: #f8f9fa;
-    color: #6c757d;
+    background-color: #f5f5f5;
+    color: #666;
     cursor: not-allowed;
 }
 
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 768px) {
+    .container {
+        padding: 18px;
+    }
+    
     .form-row {
         grid-template-columns: 1fr;
+        gap: 8px;
     }
     
     .amount-row {
         grid-template-columns: 1fr;
-    }
-    
-    .container {
-        padding: 20px;
-        margin: 10px;
+        gap: 8px;
     }
     
     .btn-group {
@@ -87,5 +220,37 @@ input[readonly] {
     
     .btn {
         width: 100%;
+    }
+    
+    .form-section {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .header h1 {
+        font-size: 22px;
+    }
+    
+    .header p {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        padding: 15px;
+    }
+    
+    .form-section {
+        padding: 8px;
+    }
+    
+    input, select, textarea {
+        padding: 8px 10px;
+        font-size: 13px;
     }
 }
