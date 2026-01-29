@@ -63,27 +63,40 @@
             border-radius: 5px;
             cursor: pointer;
         }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-style: italic;
+        }
+        
+        .error {
+            color: #ff6b6b;
+            text-align: center;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="dashboard-header">
-    <div class="dashboard-logo-section">
-        <img src="images/QFClogo.png" alt="QFC Logo" class="dashboard-logo">
-        <div class="dashboard-title">
-            <h1>📊 Refund Dashboard</h1>
-            <p>Monitor, track, and manage refund tickets</p>
+            <div class="dashboard-logo-section">
+                <img src="images/QFClogo.png" alt="QFC Logo" class="dashboard-logo">
+                <div class="dashboard-title">
+                    <h1>📊 Refund Dashboard</h1>
+                    <p>Monitor, track, and manage refund tickets</p>
+                </div>
+            </div>
+            <div class="dashboard-actions">
+                <a href="index.html" class="btn btn-add-ticket">
+                    ➕ Add Ticket
+                </a>
+                <button onclick="exportToExcel()" class="btn btn-export">
+                    📤 Export Excel
+                </button>
+            </div>
         </div>
-    </div>
-    <div class="dashboard-actions">
-    <a href="index.html" class="btn btn-add-ticket">
-        ➕ Add Ticket
-    </a>
-    <button onclick="exportToExcel()" class="btn btn-export">
-        📤 Export Excel
-    </button>
-</div>
-</div>
         
         <div class="stats">
             <div class="stat-card">
@@ -100,64 +113,124 @@
             </div>
         </div>
         
-        <table id="ticketsTable">
-            <thead>
-                <tr>
-                    <th>SR NO</th>
-                    <th>Ticket Number</th>
-                    <th>PNR</th>
-                    <th>Passenger Name</th>
-                    <th>Travel Date</th>
-                    <th>Expiry Date</th>
-                    <th>Vendor</th>
-                    <th>Vendor Amount</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="ticketsBody">
-                <!-- Tickets will appear here -->
-            </tbody>
-        </table>
+        <div id="tableContainer">
+            <table id="ticketsTable">
+                <thead>
+                    <tr>
+                        <th>SR NO</th>
+                        <th>Ticket Number</th>
+                        <th>PNR</th>
+                        <th>Passenger Name</th>
+                        <th>Travel Date</th>
+                        <th>Expiry Date</th>
+                        <th>Vendor</th>
+                        <th>Vendor Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="ticketsBody">
+                    <tr id="loadingRow">
+                        <td colspan="9" class="loading">
+                            Loading tickets from Supabase...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
     
-	 <script>
-        // Correct data structure - each property matches its correct column
-        const refundTickets = [
-            {
-                srNo: 1,
-                ticketNumber: "TKT-2024-001",
-                pnr: "2V7BUA",
-                passengerName: "Mr. Test Passenger",
-                travelDate: "2026-02-21",
-                expiryDate: "2026-01-31",
-                vendor: "RYL",
-                vendorAmount: "10,000",
-                status: "PENDING"
-            },
-            {
-                srNo: 2,
-                ticketNumber: "TKT-2024-002",
-                pnr: "EAYL95",
-                passengerName: "Mr. Muhammad Ibraheem",
-                travelDate: "2026-02-21",
-                expiryDate: "2026-03-07",
-                vendor: "QTB",
-                vendorAmount: "37,349",
-                status: "REFUNDED"
-            },
-            {
-                srNo: 3,
-                ticketNumber: "TKT-2024-003",
-                pnr: "8C8LF9",
-                passengerName: "Mr. Hussain Muzaffar",
-                travelDate: "2026-02-21",
-                expiryDate: "2026-03-14",
-                vendor: "RYL",
-                vendorAmount: "29,548",
-                status: "PENDING"
+    <script>
+        // Supabase Configuration - REPLACE WITH YOUR ACTUAL SUPABASE CREDENTIALS
+        const SUPABASE_URL = 'https://your-project.supabase.co'; // Replace with your Supabase URL
+        const SUPABASE_KEY = 'your-anon-key'; // Replace with your Supabase anon key
+        
+        // Initialize tickets array
+        let refundTickets = [];
+        
+        // Function to load tickets from Supabase
+        async function loadTicketsFromSupabase() {
+            try {
+                // Show loading state
+                document.getElementById('loadingRow').innerHTML = '<td colspan="9" class="loading">Loading tickets from Supabase...</td>';
+                
+                // In a real implementation, you would use the Supabase JavaScript client
+                // For now, we'll simulate with localStorage as fallback
+                
+                // Check if we have data in localStorage (for demo purposes)
+                const storedData = localStorage.getItem('refund_tickets_supabase');
+                
+                if (storedData) {
+                    refundTickets = JSON.parse(storedData);
+                    console.log('Loaded tickets from localStorage:', refundTickets.length);
+                    populateTable();
+                } else {
+                    // If no data in localStorage, show demo data
+                    refundTickets = getDemoTickets();
+                    populateTable();
+                    console.log('Loaded demo tickets:', refundTickets.length);
+                }
+                
+                // For real Supabase integration, you would use:
+                /*
+                const { data, error } = await supabase
+                    .from('refund_tickets')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                refundTickets = data;
+                populateTable();
+                */
+                
+            } catch (error) {
+                console.error('Error loading tickets:', error);
+                document.getElementById('loadingRow').innerHTML = '<td colspan="9" class="error">Error loading tickets. Please try again.</td>';
+                
+                // Fallback to demo data
+                refundTickets = getDemoTickets();
+                populateTable();
             }
-        ];
-
+        }
+        
+        // Function to get demo tickets (fallback)
+        function getDemoTickets() {
+            return [
+                {
+                    srNo: 1,
+                    ticketNumber: "TKT-2024-001",
+                    pnr: "2V7BUA",
+                    passengerName: "Mr. Test Passenger",
+                    travelDate: "2026-02-21",
+                    expiryDate: "2026-01-31",
+                    vendor: "RYL",
+                    vendorAmount: "10,000",
+                    status: "PENDING"
+                },
+                {
+                    srNo: 2,
+                    ticketNumber: "TKT-2024-002",
+                    pnr: "EAYL95",
+                    passengerName: "Mr. Muhammad Ibraheem",
+                    travelDate: "2026-02-21",
+                    expiryDate: "2026-03-07",
+                    vendor: "QTB",
+                    vendorAmount: "37,349",
+                    status: "REFUNDED"
+                },
+                {
+                    srNo: 3,
+                    ticketNumber: "TKT-2024-003",
+                    pnr: "8C8LF9",
+                    passengerName: "Mr. Hussain Muzaffar",
+                    travelDate: "2026-02-21",
+                    expiryDate: "2026-03-14",
+                    vendor: "RYL",
+                    vendorAmount: "29,548",
+                    status: "PENDING"
+                }
+            ];
+        }
+        
         // Function to check if a ticket is expiring soon (within 3 days)
         function isExpiringSoon(expiryDate) {
             const today = new Date();
@@ -166,47 +239,78 @@
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             return diffDays <= 3 && diffDays >= 0;
         }
-
+        
         // Function to check if a ticket is expired
         function isExpired(expiryDate) {
             const today = new Date();
             const expiry = new Date(expiryDate);
             return expiry < today;
         }
-
+        
         // Function to format date
         function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return dateString;
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            } catch (error) {
+                return dateString;
+            }
         }
-
-        // Function to populate the table with CORRECT data mapping
+        
+        // Function to populate the table
         function populateTable() {
             const tableBody = document.getElementById('ticketsBody');
+            const loadingRow = document.getElementById('loadingRow');
+            
+            // Remove loading row if it exists
+            if (loadingRow && loadingRow.parentNode) {
+                loadingRow.remove();
+            }
+            
+            if (!refundTickets || refundTickets.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="loading">
+                            No tickets found. Click "Add Ticket" to create your first refund ticket.
+                        </td>
+                    </tr>
+                `;
+                
+                // Update statistics
+                document.getElementById('totalTickets').textContent = '0';
+                document.getElementById('expiringCount').textContent = '0';
+                document.getElementById('totalAmount').textContent = '0';
+                return;
+            }
+            
             tableBody.innerHTML = '';
             
             let totalAmount = 0;
             let expiringCount = 0;
             
-            refundTickets.forEach(ticket => {
+            refundTickets.forEach((ticket, index) => {
                 const row = document.createElement('tr');
                 
+                // Ensure srNo is correct (use index + 1)
+                ticket.srNo = index + 1;
+                
                 // Calculate totals
-                const amount = parseInt(ticket.vendorAmount.replace(/,/g, '')) || 0;
+                const amount = parseInt(ticket.vendorAmount?.replace(/,/g, '') || '0') || 0;
                 totalAmount += amount;
                 
                 // Check expiry
                 let expiryClass = '';
-                let expiryDisplay = formatDate(ticket.expiryDate);
+                let expiryDisplay = formatDate(ticket.expiryDate || '');
                 
-                if (isExpired(ticket.expiryDate)) {
+                if (ticket.expiryDate && isExpired(ticket.expiryDate)) {
                     expiryClass = 'expiring';
                     expiryDisplay = '⚠️ ' + expiryDisplay + ' (Expired)';
-                } else if (isExpiringSoon(ticket.expiryDate)) {
+                } else if (ticket.expiryDate && isExpiringSoon(ticket.expiryDate)) {
                     expiryClass = 'expiring';
                     expiryDisplay = '⏰ ' + expiryDisplay + ' (Soon)';
                     expiringCount++;
@@ -214,26 +318,27 @@
                 
                 // Status badge
                 let statusClass = '';
-                let statusText = ticket.status;
+                let statusText = ticket.status || 'PENDING';
                 
-                if (ticket.status === 'PENDING') {
+                if (statusText === 'PENDING') {
                     statusClass = 'status-pending';
-                } else if (ticket.status === 'REFUNDED') {
+                } else if (statusText === 'REFUNDED') {
                     statusClass = 'status-refunded';
-                } else if (ticket.status === 'PROCESSING') {
+                } else if (statusText === 'PROCESSING') {
                     statusClass = 'status-processing';
                 }
                 
                 // CORRECT DATA MAPPING - Each property goes to its correct column
+                // NO INDIAN RUPEE SYMBOL - Removed ₹
                 row.innerHTML = `
                     <td>${ticket.srNo}</td>
-                    <td>${ticket.ticketNumber}</td>
-                    <td>${ticket.pnr}</td>
-                    <td>${ticket.passengerName}</td>
-                    <td>${formatDate(ticket.travelDate)}</td>
+                    <td>${ticket.ticketNumber || 'N/A'}</td>
+                    <td>${ticket.pnr || 'N/A'}</td>
+                    <td>${ticket.passengerName || 'N/A'}</td>
+                    <td>${formatDate(ticket.travelDate || '')}</td>
                     <td class="${expiryClass}">${expiryDisplay}</td>
-                    <td>${ticket.vendor}</td>
-                    <td>₹${ticket.vendorAmount}</td>
+                    <td>${ticket.vendor || 'N/A'}</td>
+                    <td>${ticket.vendorAmount || '0'}</td>
                     <td><span class="${statusClass}">${statusText}</span></td>
                 `;
                 
@@ -243,11 +348,16 @@
             // Update statistics
             document.getElementById('totalTickets').textContent = refundTickets.length;
             document.getElementById('expiringCount').textContent = expiringCount;
-            document.getElementById('totalAmount').textContent = `₹${totalAmount.toLocaleString()}`;
+            document.getElementById('totalAmount').textContent = totalAmount.toLocaleString();
         }
-
+        
         // Function to export to Excel
         function exportToExcel() {
+            if (!refundTickets || refundTickets.length === 0) {
+                showNotification('No data to export!', 'error');
+                return;
+            }
+            
             let csv = [];
             const headers = ["SR NO", "Ticket Number", "PNR", "Passenger Name", "Travel Date", "Expiry Date", "Vendor", "Vendor Amount", "Status"];
             csv.push(headers.join(","));
@@ -255,33 +365,34 @@
             refundTickets.forEach(ticket => {
                 const row = [
                     ticket.srNo,
-                    ticket.ticketNumber,
-                    ticket.pnr,
-                    `"${ticket.passengerName}"`,
-                    ticket.travelDate,
-                    ticket.expiryDate,
-                    ticket.vendor,
-                    ticket.vendorAmount.replace(/,/g, ''),
-                    ticket.status
+                    ticket.ticketNumber || '',
+                    ticket.pnr || '',
+                    `"${ticket.passengerName || ''}"`,
+                    ticket.travelDate || '',
+                    ticket.expiryDate || '',
+                    ticket.vendor || '',
+                    (ticket.vendorAmount || '0').replace(/,/g, ''),
+                    ticket.status || ''
                 ];
                 csv.push(row.join(","));
             });
             
             const csvString = csv.join("\n");
-            const blob = new Blob([csvString], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.setAttribute('hidden', '');
-            a.setAttribute('href', url);
-            a.setAttribute('download', `refund_tickets_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
             
-            // Show notification
+            link.setAttribute("href", url);
+            link.setAttribute("download", `refund_tickets_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
             showNotification('Data exported successfully!', 'success');
         }
-
+        
         // Function to show notification
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
@@ -292,12 +403,13 @@
                 top: 20px;
                 right: 20px;
                 padding: 15px 20px;
-                background: ${type === 'success' ? '#10b981' : '#667eea'};
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#667eea'};
                 color: white;
                 border-radius: 10px;
                 box-shadow: 0 5px 15px rgba(0,0,0,0.2);
                 z-index: 1000;
                 animation: slideIn 0.3s ease;
+                font-weight: 500;
             `;
             
             document.body.appendChild(notification);
@@ -305,12 +417,14 @@
             setTimeout(() => {
                 notification.style.animation = 'slideOut 0.3s ease';
                 setTimeout(() => {
-                    document.body.removeChild(notification);
+                    if (notification.parentNode) {
+                        document.body.removeChild(notification);
+                    }
                 }, 300);
             }, 3000);
         }
-
-        // Add CSS animations for notification
+        
+        // Add CSS animations for notification and status badges
         const style = document.createElement('style');
         style.textContent = `
             .status-pending {
@@ -366,29 +480,16 @@
             }
         `;
         document.head.appendChild(style);
-
+        
         // Initialize dashboard when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            populateTable();
+            console.log('Dashboard loading...');
+            loadTicketsFromSupabase();
             
-            // Add refresh button functionality
-            const refreshBtn = document.createElement('button');
-            refreshBtn.className = 'btn';
-            refreshBtn.innerHTML = '🔄 Refresh';
-            refreshBtn.style.background = '#f59e0b';
-            refreshBtn.onclick = function() {
-                refreshBtn.innerHTML = '🔄 Refreshing...';
-                refreshBtn.disabled = true;
-                
-                setTimeout(() => {
-                    populateTable();
-                    refreshBtn.innerHTML = '🔄 Refresh';
-                    refreshBtn.disabled = false;
-                    showNotification('Data refreshed successfully!', 'success');
-                }, 1000);
-            };
-            
-            document.querySelector('.dashboard-actions').appendChild(refreshBtn);
+            // Optional: Add auto-refresh every 30 seconds
+            setInterval(() => {
+                loadTicketsFromSupabase();
+            }, 30000);
         });
 
     </script>
