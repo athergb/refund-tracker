@@ -1,8 +1,8 @@
-// backend/server.js - SQLite Version
+// backend/server.js - Supabase Version
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const cors = require('cors');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,205 +12,181 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// Connect to SQLite database
-const dbPath = path.join(__dirname, '../database/refund.db');
-const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE, (err) => {
-    if (err) {
-        console.error('❌ Database connection error:', err.message);
-    } else {
-        console.log('✅ Connected to SQLite database');
-    }
-});
+// Supabase Configuration
+const supabaseUrl = process.env.SUPABASE_URL || 'YOUR_SUPABASE_URL_HERE';
+const supabaseKey = process.env.SUPABASE_KEY || 'YOUR_SUPABASE_ANON_KEY_HERE';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+console.log('✅ Connected to Supabase Database');
 
 // ========== API ENDPOINTS ==========
 
 // 1. GET all tickets
-app.get('/api/tickets', (req, res) => {
-    const sql = 'SELECT * FROM tickets ORDER BY created_at DESC';
-    db.all(sql, [], (err, rows) => {
-        if (err) {
-            console.error('Error fetching tickets:', err);
-            return res.status(500).json({ error: err.message });
-        }
-        res.json(rows);
-    });
-});
-
-// 2. GET single ticket by ID
-app.get('/api/tickets/:id', (req, res) => {
-    const sql = 'SELECT * FROM tickets WHERE id = ?';
-    db.get(sql, [req.params.id], (err, row) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        if (!row) {
-            return res.status(404).json({ error: 'Ticket not found' });
-        }
-        res.json(row);
-    });
-});
-
-// 3. POST create new ticket
-app.post('/api/tickets', (req, res) => {
-    const {
-        pnr, passengerName, travelDate, inboundDate, expiryDate,
-        vendor, amount, remarks, refundType, sector, ticketNo,
-        airline, agentName, refundApplyDate, venAmount, revToClient, earning
-    } = req.body;
-
-    // First, get next SR number
-    db.get('SELECT COALESCE(MAX(sr_no), 0) + 1 as next_sr FROM tickets', [], (err, result) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-
-        const srNo = result.next_sr;
-        const sql = `
-            INSERT INTO tickets (
-                sr_no, pnr, passenger_name, travel_date, inbound_date, expiry_date,
-                vendor, ven_amount, remarks, refund_type, sector, ticket_no,
-                airline, agent_name, refund_apply_date, rev_to_client, earning
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
+app.get('/api/tickets', async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('tickets')
+            .select('*')
+            .order('created_at', { ascending: false });
         
-        const params = [
-            srNo, pnr, passengerName, travelDate, inboundDate, expiryDate,
-            vendor, amount || venAmount, remarks, refundType, sector, ticketNo,
-            airline, agentName, refundApplyDate, revToClient, earning
-        ];
-
-        db.run(sql, params, function(err) {
-            if (err) {
-                console.error('Error saving ticket:', err);
-                return res.status(500).json({ error: err.message });
-            }
-            
-            // Get the inserted ticket
-            db.get('SELECT * FROM tickets WHERE id = ?', [this.lastID], (err, ticket) => {
-                res.status(201).json({
-                    message: 'Ticket saved successfully',
-                    ticket: ticket
-                });
-            });
-        });
-    });
-});
-
-// 4. PUT update ticket
-app.put('/api/tickets/:id', (req, res) => {
-    const { id } = req.params;
-    const updates = req.body;
-    
-    // Build dynamic update query
-    const fields = Object.keys(updates);
-    const values = Object.values(updates);
-    
-    if (fields.length === 0) {
-        return res.status(400).json({ error: 'No fields to update' });
+        if (error) throw error;
+        res.json(data || []);
+    } catch (error) {
+        console.error('Error fetching tickets:', error);
+        res.status(500).json({ error: error.message });
     }
-    
-    const setClause = fields.map(field => `${field} = ?`).join(', ');
-    const sql = `UPDATE tickets SET ${setClause} WHERE id = ?`;
-    
-    db.run(sql, [...values, id], function(err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
+});
+
+// 2. POST create new ticket
+app.post('/api/tickets', async (req, res) => {
+    try {
+        const {
+            pnr, passengerName, travelDate, inboundDate, expiryDate,
+            vendor, venAmount, remarks, refundType, sector, ticketNo,
+            airline, agentName, refundApplyDate, revToClient, earning
+        } = req.body;
+
+        // Get next SR number
+        const { data: maxData, error: maxError } = await supabase
+            .from('tickets')
+            .select('sr_no')
+            .order('sr_no', { ascending: false })
+            .limit(1);
         
-        if (this.changes === 0) {
-            return res.status(404).json({ error: 'Ticket not found' });
-        }
+        if (maxError) throw maxError;
+        const nextSrNo = maxData.length > 0 ? maxData[0].sr_no + 1 : 1;
+
+        // Insert new ticket
+        const { data, error } = await supabase
+            .from('tickets')
+            .insert([{
+                sr_no: nextSrNo,
+                pnr: pnr,
+                passenger_name: passengerName,
+                travel_date: travelDate,
+                inbound_date: inboundDate,
+                expiry_date: expiryDate,
+                vendor: vendor,
+                ven_amount: venAmount || 0,
+                remarks: remarks || '',
+                refund_type: refundType || 'ONLY TAX',
+                sector: sector || '',
+                ticket_no: ticketNo || '',
+                airline: airline || '',
+                agent_name: agentName || '',
+                refund_apply_date: refundApplyDate || new Date().toISOString().split('T')[0],
+                rev_to_client: revToClient || 0,
+                earning: earning || 0,
+                status: 'pending'
+            }])
+            .select();
         
-        // Get updated ticket
-        db.get('SELECT * FROM tickets WHERE id = ?', [id], (err, ticket) => {
-            res.json({
-                message: 'Ticket updated',
-                ticket: ticket
-            });
+        if (error) throw error;
+        
+        res.status(201).json({
+            success: true,
+            message: 'Ticket saved to Supabase database',
+            ticket: data[0]
         });
-    });
+        
+    } catch (error) {
+        console.error('Error saving ticket:', error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
-// 5. DELETE ticket
-app.delete('/api/tickets/:id', (req, res) => {
-    const sql = 'DELETE FROM tickets WHERE id = ?';
-    db.run(sql, [req.params.id], function(err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json({ message: 'Ticket deleted' });
-    });
-});
-
-// 6. GET statistics
-app.get('/api/statistics', (req, res) => {
-    const queries = {
-        totalTickets: 'SELECT COUNT(*) as count FROM tickets',
-        expiringSoon: `SELECT COUNT(*) as count FROM tickets 
-                      WHERE expiry_date BETWEEN date('now') AND date('now', '+7 days') 
-                      AND status != 'refunded'`,
-        totalAmount: 'SELECT COALESCE(SUM(ven_amount), 0) as total FROM tickets',
-        byVendor: 'SELECT vendor, COUNT(*) as count FROM tickets GROUP BY vendor',
-        byStatus: 'SELECT status, COUNT(*) as count FROM tickets GROUP BY status'
-    };
-
-    const results = {};
-    let completed = 0;
-    const total = Object.keys(queries).length;
-
-    Object.keys(queries).forEach(key => {
-        db.get(queries[key], [], (err, row) => {
-            if (err) {
-                console.error(`Error in ${key}:`, err);
-            } else {
-                results[key] = key.includes('Amount') ? parseFloat(row.total || 0) : 
-                              key.includes('count') ? parseInt(row.count || 0) : row;
-            }
-            
-            completed++;
-            if (completed === total) {
-                res.json(results);
-            }
+// 3. GET statistics
+app.get('/api/statistics', async (req, res) => {
+    try {
+        // Get total tickets
+        const { count, error: countError } = await supabase
+            .from('tickets')
+            .select('*', { count: 'exact', head: true });
+        
+        if (countError) throw countError;
+        
+        // Get total amount
+        const { data: amountData, error: amountError } = await supabase
+            .from('tickets')
+            .select('ven_amount');
+        
+        if (amountError) throw amountError;
+        
+        const totalAmount = amountData.reduce((sum, ticket) => sum + (ticket.ven_amount || 0), 0);
+        
+        // Get expiring tickets
+        const today = new Date().toISOString().split('T')[0];
+        const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        
+        const { count: expiringCount, error: expiringError } = await supabase
+            .from('tickets')
+            .select('*', { count: 'exact', head: true })
+            .gte('expiry_date', today)
+            .lte('expiry_date', nextWeek)
+            .neq('status', 'refunded');
+        
+        if (expiringError) throw expiringError;
+        
+        res.json({
+            totalTickets: count || 0,
+            totalAmount: totalAmount,
+            expiringSoon: expiringCount || 0
         });
-    });
+        
+    } catch (error) {
+        console.error('Error getting statistics:', error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
-// 7. GET expiring tickets
-app.get('/api/tickets/expiring/soon', (req, res) => {
-    const sql = `
-        SELECT * FROM tickets 
-        WHERE expiry_date BETWEEN date('now') AND date('now', '+7 days')
-        AND status != 'refunded'
-        ORDER BY expiry_date ASC
-    `;
-    
-    db.all(sql, [], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json(rows);
-    });
+// 4. Health check
+app.get('/api/health', async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('tickets')
+            .select('id')
+            .limit(1);
+        
+        if (error) throw error;
+        
+        res.json({ 
+            status: 'OK',
+            database: 'Supabase Connected',
+            timestamp: new Date().toISOString(),
+            environment: process.env.VERCEL ? 'Vercel Production' : 'Local Development'
+        });
+        
+    } catch (error) {
+        res.status(500).json({ 
+            status: 'ERROR',
+            database: 'Supabase Disconnected',
+            error: error.message 
+        });
+    }
 });
 
-// 8. Export to CSV
-app.get('/api/export/tickets', (req, res) => {
-    db.all('SELECT * FROM tickets', [], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-
-        // Convert to CSV
+// 5. Export to CSV
+app.get('/api/export/tickets', async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('tickets')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        // Create CSV with QFC header
         const headers = [
             'QFC - Refund Tickets Report',
             `Generated: ${new Date().toLocaleDateString()}`,
-            '', // Empty line
+            '',
             'SR NO', 'PNR', 'PASSENGER NAME', 'TRAVEL DATE', 'INBOUND DATE',
             'EXPIRY DATE', 'REFUND TYPE', 'SECTOR', 'TICKET NO', 'AIRLINE',
             'AGENT NAME', 'VENDOR', 'REFUND APPLY DATE', 'REMARKS',
             'VEN AMOUNT', 'REV TO CLIENT', 'EARNING', 'STATUS', 'CREATED AT'
         ];
-        
-         const csvRows = rows.map(ticket => [
+
+        const csvRows = (data || []).map(ticket => [
             ticket.sr_no,
             `"${ticket.pnr}"`,
             `"${ticket.passenger_name}"`,
@@ -232,48 +208,40 @@ app.get('/api/export/tickets', (req, res) => {
             ticket.created_at || ''
         ]);
 
-        const csv = [headers, ...csvRows].join('\n');
+        const csv = [headers.join(','), ...csvRows].join('\n');
 
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename="QFC_Refund_Tickets_Export.csv"');
         res.send(csv);
-    });
+        
+    } catch (error) {
+        console.error('Export error:', error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
-// 9. Health check
-app.get('/api/health', (req, res) => {
-    db.get('SELECT 1 as status', [], (err) => {
-        if (err) {
-            return res.status(500).json({ 
-                status: 'ERROR', 
-                database: 'Disconnected',
-                error: err.message 
-            });
-        }
-        res.json({ 
-            status: 'OK',
-            database: 'Connected',
-            timestamp: new Date().toISOString(),
-            dataFile: 'database/refund.db'
-        });
-    });
-});
-
-// 10. Search tickets
-app.get('/api/tickets/search/:query', (req, res) => {
-    const query = `%${req.params.query}%`;
-    const sql = `
-        SELECT * FROM tickets 
-        WHERE pnr LIKE ? OR passenger_name LIKE ? OR vendor LIKE ?
-        ORDER BY created_at DESC
-    `;
-    
-    db.all(sql, [query, query, query], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json(rows);
-    });
+// 6. Get expiring tickets
+app.get('/api/tickets/expiring/soon', async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        
+        const { data, error } = await supabase
+            .from('tickets')
+            .select('*')
+            .gte('expiry_date', today)
+            .lte('expiry_date', nextWeek)
+            .neq('status', 'refunded')
+            .order('expiry_date', { ascending: true });
+        
+        if (error) throw error;
+        
+        res.json(data || []);
+        
+    } catch (error) {
+        console.error('Error fetching expiring tickets:', error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Serve frontend
@@ -281,21 +249,14 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📊 Dashboard: http://localhost:${PORT}/dashboard.html`);
-    console.log(`🗄️ Database: ${dbPath}`);
-    console.log(`🩺 Health check: http://localhost:${PORT}/api/health`);
-});
-
-// Graceful shutdown
-process.on('SIGINT', () => {
-    db.close((err) => {
-        if (err) {
-            console.error('Error closing database:', err.message);
-        }
-        console.log('Database connection closed');
-        process.exit(0);
+// Start server (local only)
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running on http://localhost:${PORT}`);
+        console.log(`📊 Connected to Supabase`);
+        console.log(`🔗 Health: http://localhost:${PORT}/api/health`);
     });
-});
+}
+
+// Export for Vercel
+module.exports = app;
