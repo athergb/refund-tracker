@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refund Ticket Form</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎫 Enter Refund Ticket</h1>
+        <form id="refundForm">
+            <input type="text" id="pnr" placeholder="PNR Number" required>
+            <input type="text" id="passengerName" placeholder="Passenger Name" required>
+            <input type="date" id="travelDate" required>
+            <input type="date" id="inboundDate" required>
+            <input type="date" id="expiryDate" placeholder="Expiry Date">
+            <select id="vendor">
+                <option value="QTB">QTB</option>
+                <option value="SIGMA">SIGMA</option>
+                <option value="RYL">RYL</option>
+            </select>
+            <input type="number" id="amount" placeholder="Amount">
+            <textarea id="remarks" placeholder="Remarks"></textarea>
+            <button type="submit">Save Ticket</button>
+        </form>
+        <a href="dashboard.html" class="dashboard-link">📊 Go to Dashboard</a>
+    </div>
+    <script src="js/form.js"></script>
+</body>
+</html>
