@@ -1,75 +1,91 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Arial, sans-serif;
+/* Add these to your existing style.css */
+
+.header {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
 }
 
-body {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
+.header h1 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 28px;
+}
+
+.header p {
+    color: #7f8c8d;
+    font-size: 16px;
 }
 
 .container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 30px;
     background: white;
-    padding: 40px;
     border-radius: 15px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    width: 100%;
-    max-width: 600px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-h1 {
-    color: #333;
-    margin-bottom: 30px;
-    text-align: center;
+/* Make form labels more visible */
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 14px;
 }
 
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+/* Required field indicator */
+.form-group label.required::after {
+    content: " *";
+    color: #e74c3c;
 }
 
+/* Better input styling */
 input, select, textarea {
     padding: 12px 15px;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
     font-size: 16px;
-    transition: border-color 0.3s;
+    transition: all 0.3s;
+    background: #fff;
 }
 
 input:focus, select:focus, textarea:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
     outline: none;
-    border-color: #667eea;
 }
 
-button {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    padding: 15px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: transform 0.3s;
-    margin-top: 10px;
+/* Readonly field styling */
+input[readonly] {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
 }
 
-button:hover {
-    transform: translateY(-2px);
-}
-
-.dashboard-link {
-    display: block;
-    text-align: center;
-    margin-top: 20px;
-    color: #667eea;
-    text-decoration: none;
-    font-weight: bold;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .amount-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .container {
+        padding: 20px;
+        margin: 10px;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
 }
