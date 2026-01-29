@@ -68,12 +68,22 @@
 <body>
     <div class="container">
         <div class="dashboard-header">
+    <div class="dashboard-logo-section">
+        <img src="images/QFClogo.png" alt="QFC Logo" class="dashboard-logo">
+        <div class="dashboard-title">
             <h1>📊 Refund Dashboard</h1>
-            <div>
-                <a href="index.html" style="margin-right: 10px;">➕ Add Ticket</a>
-                <button onclick="exportToExcel()" class="export-btn">📤 Export</button>
-            </div>
+            <p>Monitor, track, and manage refund tickets</p>
         </div>
+    </div>
+    <div class="dashboard-actions">
+    <a href="index.html" class="btn btn-add-ticket">
+        ➕ Add Ticket
+    </a>
+    <button onclick="exportToExcel()" class="btn btn-export">
+        📤 Export Excel
+    </button>
+</div>
+</div>
         
         <div class="stats">
             <div class="stat-card">
@@ -93,11 +103,13 @@
         <table id="ticketsTable">
             <thead>
                 <tr>
+                    <th>SR NO</th>
                     <th>PNR</th>
-                    <th>Passenger</th>
-                    <th>Expiry</th>
+                    <th>Passenger Name</th>
+                    <th>Travel Date</th>
+                    <th>Expiry Date</th>
                     <th>Vendor</th>
-                    <th>Amount</th>
+                    <th>Vendor Amount</th>
                     <th>Status</th>
                 </tr>
             </thead>

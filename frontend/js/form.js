@@ -7,20 +7,23 @@ document.getElementById('refundForm').addEventListener('submit', async function(
     // Get form data
     const formData = new FormData(e.target);
     const ticketData = {
+        srNo: formData.get('srNo'),
         pnr: formData.get('pnr'),
         passengerName: formData.get('passengerName'),
         travelDate: formData.get('travelDate'),
         inboundDate: formData.get('inboundDate'),
         expiryDate: formData.get('expiryDate'),
+        refundType: formData.get('refundType'),
+        sector: formData.get('sector'),
+        ticketNo: formData.get('ticketNo'),
+        airline: formData.get('airline'),
+        agentName: formData.get('agentName'),
         vendor: formData.get('vendor'),
-        amount: parseFloat(formData.get('amount') || 0),
+        refundApplyDate: formData.get('refundApplyDate'),
         remarks: formData.get('remarks'),
-        refundType: formData.get('refundType') || 'ONLY TAX',
-        sector: formData.get('sector') || '',
-        ticketNo: formData.get('ticketNo') || '',
-        airline: formData.get('airline') || '',
-        agentName: formData.get('agentName') || '',
-        refundApplyDate: formData.get('refundApplyDate') || new Date().toISOString().split('T')[0]
+        venAmount: parseFloat(formData.get('venAmount')) || 0,
+        revToClient: parseFloat(formData.get('revToClient')) || 0,
+        earning: parseFloat(formData.get('earning')) || 0
     };
     
     try {

@@ -3,29 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Refund Ticket Form</title>
+    <title>Refund Ticket Entry System</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Additional styles for better form layout */
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .form-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .form-group label.required::after {
+            content: " *";
+            color: #ff4757;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background: white;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .amount-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            background: #f0f8ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .dashboard-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .dashboard-link:hover {
+            text-decoration: underline;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .notification.success {
+            background: #00b894;
+        }
+        
+        .notification.error {
+            background: #ff4757;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎫 Enter Refund Ticket</h1>
-        <form id="refundForm">
-            <input type="text" id="pnr" placeholder="PNR Number" required>
-            <input type="text" id="passengerName" placeholder="Passenger Name" required>
-            <input type="date" id="travelDate" required>
-            <input type="date" id="inboundDate" required>
-            <input type="date" id="expiryDate" placeholder="Expiry Date">
-            <select id="vendor">
-                <option value="QTB">QTB</option>
-                <option value="SIGMA">SIGMA</option>
-                <option value="RYL">RYL</option>
-            </select>
-            <input type="number" id="amount" placeholder="Amount">
-            <textarea id="remarks" placeholder="Remarks"></textarea>
-            <button type="submit">Save Ticket</button>
-        </form>
-        <a href="dashboard.html" class="dashboard-link">📊 Go to Dashboard</a>
+        <div class="header">
+    <div class="logo-header">
+        <img src="images/QFClogo.png" alt="QFC Logo" class="logo">
+        <div class="header-text">
+            <h1>🎫 Refund Ticket Entry System</h1>
+            <p>Enter complete refund ticket details for tracking and management</p>
+        </div>
     </div>
+</div>
+        
+        <form id="refundForm">
+            <!-- Section 1: Basic Information -->
+            <div class="form-section">
+                <h3>📋 Basic Information</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="srNo" class="required">SR NO (Auto-generated)</label>
+                        <input type="number" id="srNo" name="srNo" readonly placeholder="Auto-generated">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pnr" class="required">PNR Number</label>
+                        <input type="text" id="pnr" name="pnr" required placeholder="Enter PNR">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="passengerName" class="required">Passenger Name</label>
+                        <input type="text" id="passengerName" name="passengerName" required placeholder="Enter passenger name">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 2: Travel Dates -->
+            <div class="form-section">
+                <h3>📅 Travel Dates</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="travelDate" class="required">Travel Date</label>
+                        <input type="date" id="travelDate" name="travelDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="inboundDate" class="required">Inbound Date</label>
+                        <input type="date" id="inboundDate" name="inboundDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="expiryDate">Expiry Date</label>
+                        <input type="date" id="expiryDate" name="expiryDate">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 3: Flight Details -->
+            <div class="form-section">
+                <h3>✈️ Flight Details</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sector">Sector (Route)</label>
+                        <input type="text" id="sector" name="sector" placeholder="e.g., ISB - JED - ISB">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ticketNo">Ticket Number</label>
+                        <input type="text" id="ticketNo" name="ticketNo" placeholder="Enter ticket number">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="airline">Airline</label>
+                        <input type="text" id="airline" name="airline" placeholder="Enter airline code (FZ, SV, etc.)">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 4: Refund Information -->
+            <div class="form-section">
+                <h3>💰 Refund Information</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="refundType">Full or Half Refund</label>
+                        <select id="refundType" name="refundType">
+                            <option value="">Select refund type</option>
+                            <option value="ONLY TAX">ONLY TAX</option>
+                            <option value="FULL REFUND">FULL REFUND</option>
+                            <option value="HALF REFUND">HALF REFUND</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="vendor">Vendor</label>
+                        <select id="vendor" name="vendor">
+                            <option value="">Select vendor</option>
+                            <option value="QTB">QTB</option>
+                            <option value="SIGMA">SIGMA</option>
+                            <option value="RYL">RYL</option>
+                            <option value="OTHER">OTHER</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="agentName">Agent Name</label>
+                        <input type="text" id="agentName" name="agentName" placeholder="Enter agent name">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="refundApplyDate">Refund Apply Date</label>
+                        <input type="date" id="refundApplyDate" name="refundApplyDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="remarks">Remarks</label>
+                        <input type="text" id="remarks" name="remarks" placeholder="Enter remarks (e.g., Done refunded)">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 5: Amount Details -->
+            <div class="form-section">
+                <h3>💵 Amount Details</h3>
+                <div class="amount-row">
+                    <div class="form-group">
+                        <label for="venAmount">Vendor Amount (PKR)</label>
+                        <input type="number" id="venAmount" name="venAmount" placeholder="0" step="0.01">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="revToClient">Revenue to Client (PKR)</label>
+                        <input type="number" id="revToClient" name="revToClient" placeholder="0" step="0.01">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="earning">Earning (PKR)</label>
+                        <input type="number" id="earning" name="earning" placeholder="0" step="0.01">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary">
+                    💾 Save Refund Ticket
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                    🗑️ Clear Form
+                </button>
+            </div>
+        </form>
+        
+        <a href="dashboard.html" class="dashboard-link">
+            📊 Go to Dashboard to View All Tickets
+        </a>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+    
     <script src="js/form.js"></script>
+    <script>
+        // Set default dates
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set today as default for refund apply date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('refundApplyDate').value = today;
+            
+            // Auto-generate SR NO from localStorage
+            const tickets = JSON.parse(localStorage.getItem('refundTickets') || '[]');
+            const maxSrNo = Math.max(...tickets.map(t => parseInt(t.srNo) || 0), 0);
+            document.getElementById('srNo').value = maxSrNo + 1;
+            
+            // Calculate expiry date (30 days from travel date)
+            document.getElementById('travelDate').addEventListener('change', function() {
+                const travelDate = new Date(this.value);
+                if (!isNaN(travelDate.getTime())) {
+                    const expiryDate = new Date(travelDate);
+                    expiryDate.setDate(expiryDate.getDate() + 30);
+                    document.getElementById('expiryDate').value = expiryDate.toISOString().split('T')[0];
+                }
+            });
+            
+            // Auto-calculate earning
+            document.getElementById('venAmount').addEventListener('input', calculateEarning);
+            document.getElementById('revToClient').addEventListener('input', calculateEarning);
+            
+            function calculateEarning() {
+                const venAmount = parseFloat(document.getElementById('venAmount').value) || 0;
+                const revToClient = parseFloat(document.getElementById('revToClient').value) || 0;
+                const earning = venAmount - revToClient;
+                document.getElementById('earning').value = earning > 0 ? earning : 0;
+            }
+        });
+        
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+        
+        function clearForm() {
+            document.getElementById('refundForm').reset();
+            
+            // Reset SR NO to next number
+            const tickets = JSON.parse(localStorage.getItem('refundTickets') || '[]');
+            const maxSrNo = Math.max(...tickets.map(t => parseInt(t.srNo) || 0), 0);
+            document.getElementById('srNo').value = maxSrNo + 1;
+            
+            // Set today's date for refund apply
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('refundApplyDate').value = today;
+            
+            showNotification('Form cleared successfully!', 'success');
+        }
+    </script>
 </body>
 </html>
