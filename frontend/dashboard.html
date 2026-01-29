@@ -4,106 +4,115 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Refund Dashboard</title>
-    <link rel="stylesheet" href="css/style.css">
     <style>
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .dashboard {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
             margin-bottom: 30px;
         }
-        
         .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
+            display: flex;
+            gap: 30px;
             margin-bottom: 30px;
         }
-        
         .stat-card {
             background: #f8f9fa;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 8px;
             text-align: center;
+            min-width: 150px;
         }
-        
         .stat-value {
             font-size: 32px;
             font-weight: bold;
-            color: #667eea;
+            color: #007bff;
+            margin: 10px 0;
         }
-        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .expiring-soon {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            font-size: 14px;
         }
-        
         th, td {
-            padding: 12px;
+            padding: 12px 10px;
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
-        
         th {
-            background: #f8f9fa;
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+            white-space: nowrap;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .status-pending {
+            color: #ffc107;
             font-weight: bold;
         }
-        
-        .expiring {
-            color: #ff6b6b;
+        .status-refunded {
+            color: #28a745;
             font-weight: bold;
         }
-        
-        .export-btn {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
+        .expiring-today {
+            background-color: #fff3cd;
+        }
+        .expired {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .ticket-number {
+            font-family: monospace;
+            font-weight: bold;
+            color: #495057;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="dashboard-header">
-    <div class="dashboard-logo-section">
-        <img src="images/QFClogo.png" alt="QFC Logo" class="dashboard-logo">
-        <div class="dashboard-title">
-            <h1>📊 Refund Dashboard</h1>
-            <p>Monitor, track, and manage refund tickets</p>
-        </div>
-    </div>
-    <div class="dashboard-actions">
-    <a href="index.html" class="btn btn-add-ticket">
-        ➕ Add Ticket
-    </a>
-    <button onclick="exportToExcel()" class="btn btn-export">
-        📤 Export Excel
-    </button>
-</div>
-</div>
+    <div class="dashboard">
+        <h1>Refund Dashboard</h1>
+        <div class="subtitle">Monitor, track, and manage refund tickets</div>
         
         <div class="stats">
             <div class="stat-card">
-                <div class="stat-value" id="totalTickets">0</div>
-                <div>Total Tickets</div>
+                <div class="stat-value" id="totalTickets">3</div>
+                <div class="stat-label">Total Tickets</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="expiringCount">0</div>
-                <div>Expiring Soon</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="totalAmount">0</div>
-                <div>Total Amount</div>
+            <div class="stat-card expiring-soon">
+                <div class="stat-value" id="expiringSoon">1</div>
+                <div class="stat-label">Expiring Soon</div>
             </div>
         </div>
         
-        <table id="ticketsTable">
+        <table>
             <thead>
                 <tr>
                     <th>SR NO</th>
+                    <th>Ticket Number</th>
                     <th>PNR</th>
                     <th>Passenger Name</th>
                     <th>Travel Date</th>
@@ -113,12 +122,160 @@
                     <th>Status</th>
                 </tr>
             </thead>
-            <tbody id="ticketsBody">
-                <!-- Tickets will appear here -->
+            <tbody id="refundTableBody">
+                <!-- Data will be populated by JavaScript -->
             </tbody>
         </table>
     </div>
-    
-    <script src="js/dashboard.js"></script>
+
+    <script>
+        // CORRECTED DATA WITH TICKET NUMBERS - Replaces the old incorrect data
+        const refundData = [
+            {
+                srNo: 1,
+                ticketNumber: "TKT-2024-001",
+                pnr: "2V7BUA",
+                passengerName: "Mr. Test Passenger",
+                travelDate: "2026-02-21",
+                expiryDate: "2026-01-31",
+                vendor: "RYL",
+                vendorAmount: "10,000",
+                status: "PENDING"
+            },
+            {
+                srNo: 2,
+                ticketNumber: "TKT-2024-002",
+                pnr: "EAYL95",
+                passengerName: "Mr. Muhammad Ibraheem",
+                travelDate: "2026-02-21",
+                expiryDate: "2026-03-07",
+                vendor: "QTB",
+                vendorAmount: "37,349",
+                status: "REFUNDED"
+            },
+            {
+                srNo: 3,
+                ticketNumber: "TKT-2024-003",
+                pnr: "8C8LF9",
+                passengerName: "Mr. Hussain Muzaffar",
+                travelDate: "2026-02-21",
+                expiryDate: "2026-03-14",
+                vendor: "RYL",
+                vendorAmount: "29,548",
+                status: "PENDING"
+            }
+        ];
+
+        // Function to check if a ticket is expiring soon (within 3 days)
+        function isExpiringSoon(expiryDate) {
+            const today = new Date();
+            const expiry = new Date(expiryDate);
+            const diffTime = expiry - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays <= 3 && diffDays >= 0;
+        }
+
+        // Function to check if a ticket is expired
+        function isExpired(expiryDate) {
+            const today = new Date();
+            const expiry = new Date(expiryDate);
+            return expiry < today;
+        }
+
+        // Function to populate the table with data
+        function populateTable() {
+            const tableBody = document.getElementById('refundTableBody');
+            let expiringSoonCount = 0;
+            
+            tableBody.innerHTML = ''; // Clear existing rows
+            
+            refundData.forEach(ticket => {
+                const row = document.createElement('tr');
+                
+                // Check if ticket is expiring soon or expired
+                let expiryClass = '';
+                if (isExpired(ticket.expiryDate)) {
+                    expiryClass = 'expired';
+                } else if (isExpiringSoon(ticket.expiryDate)) {
+                    expiryClass = 'expiring-today';
+                    expiringSoonCount++;
+                }
+                
+                // Create status badge class
+                const statusClass = ticket.status === 'PENDING' ? 'status-pending' : 'status-refunded';
+                
+                row.innerHTML = `
+                    <td>${ticket.srNo}</td>
+                    <td class="ticket-number">${ticket.ticketNumber}</td>
+                    <td>${ticket.pnr}</td>
+                    <td>${ticket.passengerName}</td>
+                    <td>${ticket.travelDate}</td>
+                    <td class="${expiryClass}">${ticket.expiryDate}</td>
+                    <td>${ticket.vendor}</td>
+                    <td>${ticket.vendorAmount}</td>
+                    <td class="${statusClass}">${ticket.status}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Update the expiring soon count
+            document.getElementById('expiringSoon').textContent = expiringSoonCount;
+            
+            // Update total tickets count
+            document.getElementById('totalTickets').textContent = refundData.length;
+        }
+
+        // Initialize the dashboard when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            populateTable();
+            
+            // Optional: Add auto-refresh every 5 minutes
+            setInterval(populateTable, 300000);
+            
+            // Optional: Add export functionality
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'e') {
+                    e.preventDefault();
+                    exportTableToCSV();
+                }
+            });
+        });
+
+        // Optional: Function to export table data to CSV
+        function exportTableToCSV() {
+            let csv = [];
+            const headers = ["SR NO", "Ticket Number", "PNR", "Passenger Name", "Travel Date", "Expiry Date", "Vendor", "Vendor Amount", "Status"];
+            csv.push(headers.join(","));
+            
+            refundData.forEach(ticket => {
+                const row = [
+                    ticket.srNo,
+                    ticket.ticketNumber,
+                    ticket.pnr,
+                    ticket.passengerName,
+                    ticket.travelDate,
+                    ticket.expiryDate,
+                    ticket.vendor,
+                    ticket.vendorAmount.replace(',', ''),
+                    ticket.status
+                ];
+                csv.push(row.join(","));
+            });
+            
+            const csvString = csv.join("\n");
+            const blob = new Blob([csvString], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'refund_tickets.csv');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            console.log('Table data exported to CSV');
+        }
+    </script>
 </body>
 </html>
