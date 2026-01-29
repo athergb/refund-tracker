@@ -201,27 +201,41 @@ app.get('/api/export/tickets', (req, res) => {
 
         // Convert to CSV
         const headers = [
+            'QFC - Refund Tickets Report',
+            `Generated: ${new Date().toLocaleDateString()}`,
+            '', // Empty line
             'SR NO', 'PNR', 'PASSENGER NAME', 'TRAVEL DATE', 'INBOUND DATE',
-            'EXPIRY DATE', 'VENDOR', 'VEN AMOUNT', 'STATUS', 'REMARKS'
-        ].join(',');
-
-        const csvRows = rows.map(ticket => [
+            'EXPIRY DATE', 'REFUND TYPE', 'SECTOR', 'TICKET NO', 'AIRLINE',
+            'AGENT NAME', 'VENDOR', 'REFUND APPLY DATE', 'REMARKS',
+            'VEN AMOUNT', 'REV TO CLIENT', 'EARNING', 'STATUS', 'CREATED AT'
+        ];
+        
+         const csvRows = rows.map(ticket => [
             ticket.sr_no,
             `"${ticket.pnr}"`,
             `"${ticket.passenger_name}"`,
             ticket.travel_date,
             ticket.inbound_date,
-            ticket.expiry_date,
-            ticket.vendor,
-            ticket.ven_amount,
-            ticket.status,
-            `"${ticket.remarks || ''}"`
-        ].join(','));
+            ticket.expiry_date || '',
+            ticket.refund_type || '',
+            `"${ticket.sector || ''}"`,
+            ticket.ticket_no || '',
+            ticket.airline || '',
+            `"${ticket.agent_name || ''}"`,
+            ticket.vendor || '',
+            ticket.refund_apply_date || '',
+            `"${ticket.remarks || ''}"`,
+            ticket.ven_amount || '0',
+            ticket.rev_to_client || '0',
+            ticket.earning || '0',
+            ticket.status || 'pending',
+            ticket.created_at || ''
+        ]);
 
         const csv = [headers, ...csvRows].join('\n');
 
         res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', 'attachment; filename=refund_tickets.csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="QFC_Refund_Tickets_Export.csv"');
         res.send(csv);
     });
 });
