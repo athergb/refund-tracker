@@ -68,15 +68,22 @@
 <body>
     <div class="container">
         <div class="dashboard-header">
-            <div class="logo-header">
-            <img src="images/qfc-logo.png" alt="QFC Logo" class="logo">
+    <div class="dashboard-logo-section">
+        <img src="images/qfc-logo.png" alt="QFC Logo" class="dashboard-logo">
+        <div class="dashboard-title">
             <h1>📊 Refund Dashboard</h1>
-            <div>
-                <a href="index.html" style="margin-right: 10px;">➕ Add Ticket</a>
-                <button onclick="exportToExcel()" class="export-btn">📤 Export</button>
-            </div>
+            <p>Monitor, track, and manage refund tickets</p>
         </div>
-    </div>        
+    </div>
+    <div class="dashboard-actions">
+        <a href="index.html" class="btn" style="background: #667eea; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; margin-right: 10px;">
+            ➕ Add Ticket
+        </a>
+        <button onclick="exportToExcel()" class="btn" style="background: #28a745; color: white; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer;">
+            📤 Export Excel
+        </button>
+    </div>
+</div>
         
         <div class="stats">
             <div class="stat-card">
