@@ -1,0 +1,32 @@
+-- Run this in DB Browser SQL tab
+CREATE TABLE tickets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sr_no INTEGER NOT NULL,
+    pnr TEXT NOT NULL,
+    passenger_name TEXT NOT NULL,
+    travel_date TEXT NOT NULL,
+    inbound_date TEXT NOT NULL,
+    expiry_date TEXT,
+    refund_type TEXT,
+    sector TEXT,
+    ticket_no TEXT,
+    airline TEXT,
+    agent_name TEXT,
+    vendor TEXT,
+    refund_apply_date TEXT,
+    remarks TEXT,
+    ven_amount REAL,
+    rev_to_client REAL,
+    earning REAL,
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert sample data
+INSERT INTO tickets (sr_no, pnr, passenger_name, travel_date, inbound_date, expiry_date, vendor, ven_amount, status) 
+VALUES 
+(1, 'EAYL95', 'Mr. Muhammad Ibraheem', '2026-01-01', '2026-01-21', '2026-02-21', 'QTB', 37349, 'refunded'),
+(2, '8C8LF9', 'HUSSAIN MUZAFFAR MR', '2026-01-01', '2026-01-21', '2026-02-21', 'RYL', 29548, 'pending');
+
+-- Verify
+SELECT * FROM tickets;
