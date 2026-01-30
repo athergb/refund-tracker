@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Refund Ticket Entry System</title>
+    <!-- Include Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Additional styles for better form layout */
+        /* Your existing styles remain exactly the same */
         .form-section {
             background: #f8f9fa;
             padding: 20px;
@@ -151,14 +153,14 @@
 <body>
     <div class="container">
         <div class="header">
-    <div class="logo-header">
-        <img src="images/QFClogo.png" alt="QFC Logo" class="logo">
-        <div class="header-text">
-            <h1>🎫 Refund Ticket Entry System</h1>
-            <p>Enter complete refund ticket details for tracking and management</p>
+            <div class="logo-header">
+                <img src="images/QFClogo.png" alt="QFC Logo" class="logo">
+                <div class="header-text">
+                    <h1>🎫 Refund Ticket Entry System</h1>
+                    <p>Enter complete refund ticket details for tracking and management</p>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
         
         <form id="refundForm">
             <!-- Section 1: Basic Information -->
@@ -166,8 +168,8 @@
                 <h3>📋 Basic Information</h3>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="srNo" class="required">SR NO (Auto-generated)</label>
-                        <input type="number" id="srNo" name="srNo" readonly placeholder="Auto-generated">
+                        <label for="ticketNumber" class="required">Ticket Number</label>
+                        <input type="text" id="ticketNumber" name="ticketNumber" required placeholder="Enter ticket number (e.g., TKT-2024-001)">
                     </div>
                     
                     <div class="form-group">
@@ -192,50 +194,8 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="inboundDate" class="required">Inbound Date</label>
-                        <input type="date" id="inboundDate" name="inboundDate" required>
-                    </div>
-                    
-                    <div class="form-group">
                         <label for="expiryDate">Expiry Date</label>
                         <input type="date" id="expiryDate" name="expiryDate">
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Section 3: Flight Details -->
-            <div class="form-section">
-                <h3>✈️ Flight Details</h3>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="sector">Sector (Route)</label>
-                        <input type="text" id="sector" name="sector" placeholder="e.g., ISB - JED - ISB">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="ticketNo">Ticket Number</label>
-                        <input type="text" id="ticketNo" name="ticketNo" placeholder="Enter ticket number">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="airline">Airline</label>
-                        <input type="text" id="airline" name="airline" placeholder="Enter airline code (FZ, SV, etc.)">
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Section 4: Refund Information -->
-            <div class="form-section">
-                <h3>💰 Refund Information</h3>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="refundType">Full or Half Refund</label>
-                        <select id="refundType" name="refundType">
-                            <option value="">Select refund type</option>
-                            <option value="ONLY TAX">ONLY TAX</option>
-                            <option value="FULL REFUND">FULL REFUND</option>
-                            <option value="HALF REFUND">HALF REFUND</option>
-                        </select>
                     </div>
                     
                     <div class="form-group">
@@ -248,43 +208,16 @@
                             <option value="OTHER">OTHER</option>
                         </select>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="agentName">Agent Name</label>
-                        <input type="text" id="agentName" name="agentName" placeholder="Enter agent name">
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="refundApplyDate">Refund Apply Date</label>
-                        <input type="date" id="refundApplyDate" name="refundApplyDate">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="remarks">Remarks</label>
-                        <input type="text" id="remarks" name="remarks" placeholder="Enter remarks (e.g., Done refunded)">
-                    </div>
                 </div>
             </div>
             
-            <!-- Section 5: Amount Details -->
+            <!-- Section 3: Amount Details -->
             <div class="form-section">
                 <h3>💵 Amount Details</h3>
                 <div class="amount-row">
                     <div class="form-group">
-                        <label for="venAmount">Vendor Amount (PKR)</label>
-                        <input type="number" id="venAmount" name="venAmount" placeholder="0" step="0.01">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="revToClient">Revenue to Client (PKR)</label>
-                        <input type="number" id="revToClient" name="revToClient" placeholder="0" step="0.01">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="earning">Earning (PKR)</label>
-                        <input type="number" id="earning" name="earning" placeholder="0" step="0.01">
+                        <label for="vendorAmount" class="required">Vendor Amount</label>
+                        <input type="number" id="vendorAmount" name="vendorAmount" required placeholder="0" step="0.01">
                     </div>
                 </div>
             </div>
@@ -292,7 +225,7 @@
             <!-- Form Actions -->
             <div class="btn-group">
                 <button type="submit" class="btn btn-primary">
-                    💾 Save Refund Ticket
+                    💾 Save to Supabase
                 </button>
                 <button type="button" class="btn btn-secondary" onclick="clearForm()">
                     🗑️ Clear Form
@@ -308,18 +241,23 @@
     <!-- Notification -->
     <div class="notification" id="notification"></div>
     
-    <script src="js/form.js"></script>
     <script>
-        // Set default dates
+        // ================= SUPABASE CONFIGURATION =================
+        // MUST MATCH dashboard.html credentials
+        const SUPABASE_URL = 'https://lnvutfwzbsjvagipqgqb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxudnV0Znd6YnNqdmFnaXBxZ3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MDc3NTAsImV4cCI6MjA4NTI4Mzc1MH0.IF-4A234--HqN3RGhruMjwmvVUxCnX80YuAcLK2i4zs';
+        
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Table name (MUST match dashboard.html)
+        const TABLE_NAME = 'refund_tickets';
+        
+        // ================= FORM HANDLING =================
         document.addEventListener('DOMContentLoaded', function() {
-            // Set today as default for refund apply date
+            // Set default dates
             const today = new Date().toISOString().split('T')[0];
-            document.getElementById('refundApplyDate').value = today;
-            
-            // Auto-generate SR NO from localStorage
-            const tickets = JSON.parse(localStorage.getItem('refundTickets') || '[]');
-            const maxSrNo = Math.max(...tickets.map(t => parseInt(t.srNo) || 0), 0);
-            document.getElementById('srNo').value = maxSrNo + 1;
+            document.getElementById('travelDate').value = today;
             
             // Calculate expiry date (30 days from travel date)
             document.getElementById('travelDate').addEventListener('change', function() {
@@ -331,17 +269,103 @@
                 }
             });
             
-            // Auto-calculate earning
-            document.getElementById('venAmount').addEventListener('input', calculateEarning);
-            document.getElementById('revToClient').addEventListener('input', calculateEarning);
+            // Handle form submission
+            document.getElementById('refundForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Show loading state
+                const submitBtn = document.querySelector('.btn-primary');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '⏳ Saving...';
+                submitBtn.disabled = true;
+                
+                try {
+                    // Prepare data for Supabase
+                    const ticketData = {
+                        ticket_number: document.getElementById('ticketNumber').value.trim(),
+                        pnr: document.getElementById('pnr').value.trim(),
+                        passenger_name: document.getElementById('passengerName').value.trim(),
+                        travel_date: document.getElementById('travelDate').value,
+                        expiry_date: document.getElementById('expiryDate').value,
+                        vendor: document.getElementById('vendor').value || 'OTHER',
+                        vendor_amount: document.getElementById('vendorAmount').value || '0',
+                        status: 'PENDING' // Default status
+                    };
+                    
+                    console.log('Saving to Supabase:', ticketData);
+                    
+                    // Insert data into Supabase
+                    const { data, error } = await supabase
+                        .from(TABLE_NAME)
+                        .insert([ticketData])
+                        .select();
+                    
+                    if (error) {
+                        console.error('Supabase error:', error);
+                        throw error;
+                    }
+                    
+                    console.log('Data saved to Supabase:', data);
+                    
+                    // Show success message
+                    showNotification(`Ticket saved successfully! Ticket #${ticketData.ticket_number}`, 'success');
+                    
+                    // Clear form
+                    clearForm();
+                    
+                    // Generate new ticket number
+                    generateNextTicketNumber();
+                    
+                } catch (error) {
+                    console.error('Error saving ticket:', error);
+                    showNotification(`Error: ${error.message}`, 'error');
+                } finally {
+                    // Restore button
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            });
             
-            function calculateEarning() {
-                const venAmount = parseFloat(document.getElementById('venAmount').value) || 0;
-                const revToClient = parseFloat(document.getElementById('revToClient').value) || 0;
-                const earning = venAmount - revToClient;
-                document.getElementById('earning').value = earning > 0 ? earning : 0;
-            }
+            // Generate initial ticket number
+            generateNextTicketNumber();
         });
+        
+        // Function to generate next ticket number
+        async function generateNextTicketNumber() {
+            try {
+                // Get latest ticket from Supabase to determine next number
+                const { data, error } = await supabase
+                    .from(TABLE_NAME)
+                    .select('ticket_number')
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                
+                if (error) throw error;
+                
+                let nextNumber = 1;
+                if (data && data.length > 0) {
+                    // Extract number from last ticket (e.g., "TKT-2024-001" -> 1)
+                    const lastTicket = data[0].ticket_number;
+                    const match = lastTicket.match(/TKT-\d{4}-(\d+)/);
+                    if (match) {
+                        nextNumber = parseInt(match[1]) + 1;
+                    }
+                }
+                
+                // Format as TKT-2024-001, TKT-2024-002, etc.
+                const currentYear = new Date().getFullYear();
+                const paddedNumber = nextNumber.toString().padStart(3, '0');
+                const ticketNumber = `TKT-${currentYear}-${paddedNumber}`;
+                
+                document.getElementById('ticketNumber').value = ticketNumber;
+                
+            } catch (error) {
+                console.error('Error generating ticket number:', error);
+                // Fallback to simple numbering
+                const currentYear = new Date().getFullYear();
+                document.getElementById('ticketNumber').value = `TKT-${currentYear}-001`;
+            }
+        }
         
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
@@ -355,18 +379,23 @@
         }
         
         function clearForm() {
-            document.getElementById('refundForm').reset();
+            // Clear only specific fields, keep ticket number
+            document.getElementById('pnr').value = '';
+            document.getElementById('passengerName').value = '';
+            document.getElementById('vendor').value = '';
+            document.getElementById('vendorAmount').value = '';
             
-            // Reset SR NO to next number
-            const tickets = JSON.parse(localStorage.getItem('refundTickets') || '[]');
-            const maxSrNo = Math.max(...tickets.map(t => parseInt(t.srNo) || 0), 0);
-            document.getElementById('srNo').value = maxSrNo + 1;
-            
-            // Set today's date for refund apply
+            // Set default dates
             const today = new Date().toISOString().split('T')[0];
-            document.getElementById('refundApplyDate').value = today;
+            document.getElementById('travelDate').value = today;
             
-            showNotification('Form cleared successfully!', 'success');
+            // Calculate expiry date
+            const travelDate = new Date(today);
+            const expiryDate = new Date(travelDate);
+            expiryDate.setDate(expiryDate.getDate() + 30);
+            document.getElementById('expiryDate').value = expiryDate.toISOString().split('T')[0];
+            
+            showNotification('Form cleared! New ticket number generated.', 'success');
         }
     </script>
 </body>
