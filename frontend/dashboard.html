@@ -477,13 +477,7 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxudnV0Znd6YnNqdmFnaXBxZ3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MDc3NTAsImV4cCI6MjA4NTI4Mzc1MH0.IF-4A234--HqN3RGhruMjwmvVUxCnX80YuAcLK2i4zs';
         
         // Initialize Supabase client
-        let supabaseClient;
-        if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            console.log('Supabase client created successfully');
-        } else {
-            console.error('Supabase library not loaded properly');
-        }
+        let supabaseClient = null;
         
         // Table name
         const TABLE_NAME = 'tickets';
@@ -491,7 +485,23 @@
         // ================= VARIABLES =================
         let refundTickets = [];
         
-        // ================= FUNCTIONS =================
+        // ================= HELPER FUNCTIONS =================
+        
+        // Helper function to safely convert to string
+        function safeToString(value) {
+            if (value === null || value === undefined) return '0';
+            if (typeof value === 'string') return value;
+            return String(value);
+        }
+        
+        // Helper function to safely parse float
+        function safeParseFloat(value) {
+            const str = safeToString(value);
+            const num = parseFloat(str.replace(/,/g, ''));
+            return isNaN(num) ? 0 : num;
+        }
+        
+        // ================= MAIN FUNCTIONS =================
         
         // Function to load tickets from Supabase
         async function loadTickets() {
@@ -504,9 +514,13 @@
                     loadingRow.innerHTML = '<td colspan="19" class="loading">🔄 Loading tickets...</td>';
                 }
                 
-                // Check if supabaseClient is available
+                // Initialize Supabase client if not already done
                 if (!supabaseClient) {
-                    throw new Error('Supabase client not initialized');
+                    if (!window.supabase || !window.supabase.createClient) {
+                        throw new Error('Supabase library not loaded. Please refresh the page.');
+                    }
+                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('Supabase client created successfully');
                 }
                 
                 // Fetch data from Supabase
@@ -541,9 +555,9 @@
                         agentName: ticket.agent_name || '',
                         vendor: ticket.vendor || '',
                         refundApplyDate: ticket.refund_apply_date || '',
-                        vendorAmount: ticket.ven_amount || '0',
-                        revToClient: ticket.rev_to_client || '0',
-                        earning: ticket.earning || '0',
+                        vendorAmount: ticket.ven_amount || 0,
+                        revToClient: ticket.rev_to_client || 0,
+                        earning: ticket.earning || 0,
                         remarks: ticket.remarks || '',
                         status: ticket.status || 'PENDING'
                     }));
@@ -612,12 +626,6 @@
                 const day = date.getDate().toString().padStart(2, '0');
                 return `${month}/${day}`;
                 
-                // Alternative: Even more compact
-                // const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                // const month = monthNames[date.getMonth()];
-                // const day = date.getDate();
-                // return `${month} ${day}`;
-                
             } catch (error) {
                 return '-';
             }
@@ -655,20 +663,6 @@
             refundTickets.forEach((ticket, index) => {
                 const row = document.createElement('tr');
                 
-                // Helper function to safely convert to string
-                function safeToString(value) {
-                    if (value === null || value === undefined) return '0';
-                    if (typeof value === 'string') return value;
-                    return String(value);
-                }
-                
-                // Helper function to safely parse float
-                function safeParseFloat(value) {
-                    const str = safeToString(value);
-                    const num = parseFloat(str.replace(/,/g, ''));
-                    return isNaN(num) ? 0 : num;
-                }
-                
                 // Calculate totals
                 const amount = safeParseFloat(ticket.vendorAmount);
                 totalAmount += amount;
@@ -699,16 +693,16 @@
                 }
                 
                 // Truncate text for compact display
-                const shortPassenger = ticket.passengerName.length > 10 ? 
-                    ticket.passengerName.substring(0, 10) + '...' : ticket.passengerName;
-                const shortRemarks = ticket.remarks.length > 8 ? 
-                    ticket.remarks.substring(0, 8) + '...' : ticket.remarks;
-                const shortSector = ticket.sector.length > 8 ? 
-                    ticket.sector.substring(0, 8) + '...' : ticket.sector;
-                const shortRefundType = ticket.refundType.length > 6 ? 
-                    ticket.refundType.substring(0, 6) + '...' : ticket.refundType;
-                const shortAgent = ticket.agentName.length > 8 ? 
-                    ticket.agentName.substring(0, 8) + '...' : ticket.agentName;
+                const shortPassenger = ticket.passengerName && ticket.passengerName.length > 10 ? 
+                    ticket.passengerName.substring(0, 10) + '...' : ticket.passengerName || '';
+                const shortRemarks = ticket.remarks && ticket.remarks.length > 8 ? 
+                    ticket.remarks.substring(0, 8) + '...' : ticket.remarks || '';
+                const shortSector = ticket.sector && ticket.sector.length > 8 ? 
+                    ticket.sector.substring(0, 8) + '...' : ticket.sector || '';
+                const shortRefundType = ticket.refundType && ticket.refundType.length > 6 ? 
+                    ticket.refundType.substring(0, 6) + '...' : ticket.refundType || '';
+                const shortAgent = ticket.agentName && ticket.agentName.length > 8 ? 
+                    ticket.agentName.substring(0, 8) + '...' : ticket.agentName || '';
                 
                 // Format amounts compactly
                 const formatAmount = (value) => {
@@ -794,17 +788,10 @@
                 return;
             }
             
-            // Helper function to safely convert to string
-            function safeToString(value) {
-                if (value === null || value === undefined) return '0';
-                if (typeof value === 'string') return value;
-                return String(value);
-            }
-            
             const newStatus = prompt('Enter status (PENDING, PROCESSING, REFUNDED):', ticket.status);
             if (!newStatus) return;
             
-            const newVendorAmount = prompt('Enter vendor amount:', safeToString(ticket.vendorAmount));
+            const newVendorAmount = prompt('Enter vendor amount:', ticket.vendorAmount);
             if (newVendorAmount === null) return;
             
             const newRemarks = prompt('Enter remarks:', ticket.remarks || '');
@@ -933,6 +920,12 @@
             
             // Auto-refresh every 30 seconds
             setInterval(loadTickets, 30000);
+            
+            // Make functions available globally
+            window.loadTickets = loadTickets;
+            window.exportToExcel = exportToExcel;
+            window.editTicket = editTicket;
+            window.deleteTicket = deleteTicket;
         });
 
     </script>
