@@ -41,13 +41,17 @@
             border-collapse: collapse;
             margin-top: 15px;
             font-size: 12px; /* Smaller font size */
+            table-layout: fixed; /* Fixed layout for consistent columns */
         }
         
         th, td {
-            padding: 8px 6px; /* Smaller padding */
+            padding: 8px 4px; /* Even smaller padding */
             text-align: left;
             border-bottom: 1px solid #e0e0e0;
             line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         
         th {
@@ -64,6 +68,7 @@
         .expiring {
             color: #e53e3e;
             font-weight: 600;
+            font-size: 11px;
         }
         
         .loading {
@@ -94,15 +99,16 @@
             font-size: 13px;
         }
         
-        /* Compact table container */
+        /* Compact table container - NO SCROLL */
         .table-container {
             width: 100%;
             max-width: 100%;
-            overflow: visible;
+            overflow: visible !important;
         }
         
-        /* Make table fit on page */
+        /* Make table fit on page with exact column widths */
         table {
+            width: 100%;
             min-width: 100%;
         }
         
@@ -183,62 +189,149 @@
             color: white;
         }
         
-        /* Column width adjustments */
+        /* EXTREMELY COMPACT COLUMN WIDTHS */
         td:nth-child(1), th:nth-child(1) { /* SR NO */
-            width: 50px;
-            min-width: 50px;
+            width: 40px !important;
+            min-width: 40px !important;
+            max-width: 40px !important;
         }
         
         td:nth-child(2), th:nth-child(2) { /* PNR */
-            width: 80px;
-            min-width: 80px;
+            width: 70px !important;
+            min-width: 70px !important;
+            max-width: 70px !important;
         }
         
         td:nth-child(3), th:nth-child(3) { /* Passenger Name */
-            width: 120px;
-            min-width: 120px;
+            width: 100px !important;
+            min-width: 100px !important;
+            max-width: 100px !important;
         }
         
-        td:nth-child(4), th:nth-child(4), /* Travel Date */
-        td:nth-child(5), th:nth-child(5), /* Inbound Date */
-        td:nth-child(6), th:nth-child(6), /* Expiry */
+        /* DATE COLUMNS - SUPER COMPACT */
+        td:nth-child(4), th:nth-child(4) { /* Travel Date */
+            width: 60px !important;
+            min-width: 60px !important;
+            max-width: 60px !important;
+            font-size: 11px !important;
+        }
+        
+        td:nth-child(5), th:nth-child(5) { /* Inbound Date */
+            width: 60px !important;
+            min-width: 60px !important;
+            max-width: 60px !important;
+            font-size: 11px !important;
+        }
+        
+        td:nth-child(6), th:nth-child(6) { /* Expiry */
+            width: 60px !important;
+            min-width: 60px !important;
+            max-width: 60px !important;
+            font-size: 11px !important;
+        }
+        
         td:nth-child(13), th:nth-child(13) { /* Refund Apply Date */
-            width: 90px;
-            min-width: 90px;
+            width: 60px !important;
+            min-width: 60px !important;
+            max-width: 60px !important;
+            font-size: 11px !important;
+        }
+        
+        td:nth-child(7), th:nth-child(7) { /* Refund Type */
+            width: 70px !important;
+            min-width: 70px !important;
+            max-width: 70px !important;
+        }
+        
+        td:nth-child(8), th:nth-child(8) { /* Sector */
+            width: 80px !important;
+            min-width: 80px !important;
+            max-width: 80px !important;
         }
         
         td:nth-child(9), th:nth-child(9) { /* Ticket No */
-            width: 100px;
-            min-width: 100px;
+            width: 90px !important;
+            min-width: 90px !important;
+            max-width: 90px !important;
+        }
+        
+        td:nth-child(10), th:nth-child(10) { /* Airline */
+            width: 50px !important;
+            min-width: 50px !important;
+            max-width: 50px !important;
+        }
+        
+        td:nth-child(11), th:nth-child(11) { /* Agent */
+            width: 70px !important;
+            min-width: 70px !important;
+            max-width: 70px !important;
+        }
+        
+        td:nth-child(12), th:nth-child(12) { /* Vendor */
+            width: 50px !important;
+            min-width: 50px !important;
+            max-width: 50px !important;
         }
         
         td:nth-child(14), th:nth-child(14), /* Vendor Amount */
         td:nth-child(15), th:nth-child(15), /* Return to Client */
         td:nth-child(16), th:nth-child(16) { /* Earning */
-            width: 80px;
-            min-width: 80px;
+            width: 70px !important;
+            min-width: 70px !important;
+            max-width: 70px !important;
             text-align: right;
+            font-size: 11px !important;
+        }
+        
+        td:nth-child(17), th:nth-child(17) { /* Remarks */
+            width: 80px !important;
+            min-width: 80px !important;
+            max-width: 80px !important;
+        }
+        
+        td:nth-child(18), th:nth-child(18) { /* Status */
+            width: 70px !important;
+            min-width: 70px !important;
+            max-width: 70px !important;
         }
         
         td:nth-child(19), th:nth-child(19) { /* Actions */
-            width: 80px;
-            min-width: 80px;
+            width: 60px !important;
+            min-width: 60px !important;
+            max-width: 60px !important;
         }
         
-        /* Responsive adjustments */
+        /* Responsive adjustments - NO SCROLL */
         @media (max-width: 1400px) {
             table {
                 font-size: 11px;
             }
             
             th, td {
-                padding: 6px 4px;
+                padding: 6px 3px;
             }
             
             .btn-small {
                 font-size: 10px;
                 padding: 2px 4px;
             }
+            
+            /* Make date columns even smaller */
+            td:nth-child(4), th:nth-child(4),
+            td:nth-child(5), th:nth-child(5),
+            td:nth-child(6), th:nth-child(6),
+            td:nth-child(13), th:nth-child(13) {
+                width: 55px !important;
+                min-width: 55px !important;
+                max-width: 55px !important;
+                font-size: 10px !important;
+            }
+        }
+        
+        /* Force NO horizontal scroll */
+        body, .container, .table-container {
+            overflow-x: hidden !important;
+            max-width: 100vw !important;
         }
         
         /* Hover effects */
@@ -281,6 +374,26 @@
                 transform: translateX(100%);
                 opacity: 0;
             }
+        }
+        
+        /* Tooltip for truncated text */
+        [title] {
+            position: relative;
+        }
+        
+        [title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
         }
     </style>
 </head>
@@ -332,7 +445,7 @@
                         <th>Travel</th>
                         <th>Inbound</th>
                         <th>Expiry</th>
-                        <th>Refund Type</th>
+                        <th>Ref Type</th>
                         <th>Sector</th>
                         <th>Ticket No</th>
                         <th>Airline</th>
@@ -487,18 +600,26 @@
             return expiry < today;
         }
         
-        // Function to format date
+        // Function to format date in SUPER COMPACT format
         function formatDate(dateString) {
-            if (!dateString) return 'N/A';
+            if (!dateString) return '-';
             try {
                 const date = new Date(dateString);
-                if (isNaN(date.getTime())) return dateString;
-                return date.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric'
-                });
+                if (isNaN(date.getTime())) return '-';
+                
+                // ULTRA COMPACT format: "12/25" or "Jan 25"
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const day = date.getDate().toString().padStart(2, '0');
+                return `${month}/${day}`;
+                
+                // Alternative: Even more compact
+                // const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                // const month = monthNames[date.getMonth()];
+                // const day = date.getDate();
+                // return `${month} ${day}`;
+                
             } catch (error) {
-                return dateString;
+                return '-';
             }
         }
         
@@ -577,40 +698,52 @@
                     statusClass = 'status-processing';
                 }
                 
-                // Shorten long text
-                const shortPassenger = ticket.passengerName.length > 15 ? 
-                    ticket.passengerName.substring(0, 15) + '...' : ticket.passengerName;
-                const shortRemarks = ticket.remarks.length > 10 ? 
-                    ticket.remarks.substring(0, 10) + '...' : ticket.remarks;
-                const shortSector = ticket.sector.length > 10 ? 
-                    ticket.sector.substring(0, 10) + '...' : ticket.sector;
+                // Truncate text for compact display
+                const shortPassenger = ticket.passengerName.length > 10 ? 
+                    ticket.passengerName.substring(0, 10) + '...' : ticket.passengerName;
+                const shortRemarks = ticket.remarks.length > 8 ? 
+                    ticket.remarks.substring(0, 8) + '...' : ticket.remarks;
+                const shortSector = ticket.sector.length > 8 ? 
+                    ticket.sector.substring(0, 8) + '...' : ticket.sector;
+                const shortRefundType = ticket.refundType.length > 6 ? 
+                    ticket.refundType.substring(0, 6) + '...' : ticket.refundType;
+                const shortAgent = ticket.agentName.length > 8 ? 
+                    ticket.agentName.substring(0, 8) + '...' : ticket.agentName;
                 
-                // Generate table row with ALL fields
+                // Format amounts compactly
+                const formatAmount = (value) => {
+                    const num = safeParseFloat(value);
+                    if (num >= 1000000) return (num/1000000).toFixed(1) + 'M';
+                    if (num >= 1000) return (num/1000).toFixed(1) + 'K';
+                    return num.toString();
+                };
+                
+                // Generate table row with ALL fields - SUPER COMPACT
                 row.innerHTML = `
                     <td>${ticket.srNo || ''}</td>
-                    <td><strong>${ticket.pnr || ''}</strong></td>
+                    <td title="${ticket.pnr || ''}"><strong>${ticket.pnr || ''}</strong></td>
                     <td title="${ticket.passengerName || ''}">${shortPassenger}</td>
-                    <td>${formatDate(ticket.travelDate)}</td>
-                    <td>${formatDate(ticket.inboundDate)}</td>
-                    <td class="${expiryClass}">${expiryDisplay}</td>
-                    <td>${ticket.refundType || ''}</td>
+                    <td title="${ticket.travelDate || ''}">${formatDate(ticket.travelDate)}</td>
+                    <td title="${ticket.inboundDate || ''}">${formatDate(ticket.inboundDate)}</td>
+                    <td class="${expiryClass}" title="${ticket.expiryDate || ''}">${expiryDisplay}</td>
+                    <td title="${ticket.refundType || ''}">${shortRefundType}</td>
                     <td title="${ticket.sector || ''}">${shortSector}</td>
-                    <td><strong>${ticket.ticketNumber || ''}</strong></td>
+                    <td title="${ticket.ticketNumber || ''}"><strong>${ticket.ticketNumber || ''}</strong></td>
                     <td>${ticket.airline || ''}</td>
-                    <td>${ticket.agentName || ''}</td>
+                    <td title="${ticket.agentName || ''}">${shortAgent}</td>
                     <td>${ticket.vendor || ''}</td>
-                    <td>${formatDate(ticket.refundApplyDate)}</td>
-                    <td style="text-align: right;">${safeToString(ticket.vendorAmount)}</td>
-                    <td style="text-align: right;">${safeToString(ticket.revToClient)}</td>
-                    <td style="text-align: right;">${safeToString(ticket.earning)}</td>
+                    <td title="${ticket.refundApplyDate || ''}">${formatDate(ticket.refundApplyDate)}</td>
+                    <td style="text-align: right;" title="${safeToString(ticket.vendorAmount)}">${formatAmount(ticket.vendorAmount)}</td>
+                    <td style="text-align: right;" title="${safeToString(ticket.revToClient)}">${formatAmount(ticket.revToClient)}</td>
+                    <td style="text-align: right;" title="${safeToString(ticket.earning)}">${formatAmount(ticket.earning)}</td>
                     <td title="${ticket.remarks || ''}">${shortRemarks}</td>
-                    <td><span class="${statusClass}">${statusText}</span></td>
+                    <td><span class="${statusClass}">${statusText.charAt(0)}</span></td>
                     <td>
-                        <button onclick="editTicket('${ticket.id}')" class="btn-small btn-edit">
-                            Edit
+                        <button onclick="editTicket('${ticket.id}')" class="btn-small btn-edit" title="Edit">
+                            E
                         </button>
-                        <button onclick="deleteTicket('${ticket.id}')" class="btn-small btn-delete">
-                            Del
+                        <button onclick="deleteTicket('${ticket.id}')" class="btn-small btn-delete" title="Delete">
+                            D
                         </button>
                     </td>
                 `;
