@@ -54,7 +54,8 @@
             </div>
         </div>
         
-        <form id="refundForm">
+        <!-- CHANGED: Removed form tag completely, using div instead -->
+        <div id="refundFormContainer">
             <!-- Section 1: Basic Information -->
             <div class="form-section">
                 <h3>📋 Basic Information</h3>
@@ -184,11 +185,11 @@
                 <button type="button" id="saveButton" class="btn btn-primary">
                     💾 Save to Supabase
                 </button>
-                <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                <button type="button" id="clearButton" class="btn btn-secondary">
                     🗑️ Clear Form
                 </button>
             </div>
-        </form>
+        </div>
         
         <a href="dashboard.html" class="dashboard-link">
             📊 Go to Dashboard to View All Tickets
@@ -198,13 +199,13 @@
     <!-- Notification -->
     <div class="notification" id="notification"></div>
     
-    <!-- Load Supabase script first -->
+    <!-- Load Supabase script -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <script>
-        // Wait for everything to load including Supabase
-        window.addEventListener('load', function() {
-            console.log('Window fully loaded, initializing application...');
+        // Initialize when everything is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up form...');
             
             // Set default dates
             const today = new Date().toISOString().split('T')[0];
@@ -213,8 +214,8 @@
             // Setup earning calculation
             setupEarningCalculation();
             
-            // Setup form submission
-            setupFormSubmission();
+            // Setup button events
+            setupButtonEvents();
             
             // Setup travel date listener for expiry date
             document.getElementById('travelDate').addEventListener('change', function() {
@@ -226,24 +227,26 @@
                 }
             });
             
-            // Generate SR NO after Supabase is loaded
+            // Generate SR NO
             setTimeout(() => {
                 generateNextSrNo();
-            }, 500);
+            }, 1000);
             
-            console.log('Application initialized successfully');
+            console.log('Form setup complete');
         });
         
         // Function to setup earning calculation
         function setupEarningCalculation() {
             const venAmountInput = document.getElementById('venAmount');
             const revToClientInput = document.getElementById('revToClient');
+            const earningInput = document.getElementById('earning');
             
             function calculateEarning() {
                 const venAmount = parseFloat(venAmountInput.value) || 0;
                 const revToClient = parseFloat(revToClientInput.value) || 0;
                 const earning = venAmount - revToClient;
-                document.getElementById('earning').value = earning.toFixed(2);
+                earningInput.value = earning.toFixed(2);
+                console.log('Earning calculated:', venAmount, '-', revToClient, '=', earning);
             }
             
             venAmountInput.addEventListener('input', calculateEarning);
@@ -253,77 +256,40 @@
             calculateEarning();
         }
         
-        // Function to setup form submission
-        function setupFormSubmission() {
+        // Function to setup button events
+        function setupButtonEvents() {
             const saveButton = document.getElementById('saveButton');
-            const form = document.getElementById('refundForm');
+            const clearButton = document.getElementById('clearButton');
             
-            // Prevent form submission
-            if (form) {
-                form.addEventListener('submit', function(e) {
+            // Save button click
+            saveButton.addEventListener('click', handleSaveClick);
+            
+            // Clear button click
+            clearButton.addEventListener('click', clearForm);
+            
+            // Also prevent any enter key submission
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
                     e.preventDefault();
-                    return false;
-                });
-            }
+                    // If enter is pressed while focused on a form element, save instead
+                    if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                        handleSaveClick();
+                    }
+                }
+            });
+        }
+        
+        // Function to handle save button click
+        async function handleSaveClick() {
+            console.log('Save button clicked');
             
-            // Handle save button click
-            if (saveButton) {
-                saveButton.addEventListener('click', async function() {
-                    console.log('Save button clicked');
-                    await saveFormData();
-                });
-            }
-        }
-        
-        // Function to generate next SR NO
-        async function generateNextSrNo() {
-            try {
-                // Check if Supabase is loaded
-                if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-                    console.warn('Supabase not loaded yet, setting default SR NO');
-                    document.getElementById('srNo').value = 1;
-                    return;
-                }
-                
-                // Initialize Supabase client
-                const supabaseUrl = 'https://lnvutfwzbsjvagipqgqb.supabase.co';
-                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxudnV0Znd6YnNqdmFnaXBxZ3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MDc3NTAsImV4cCI6MjA4NTI4Mzc1MH0.IF-4A234--HqN3RGhruMjwmvVUxCnX80YuAcLK2i4zs';
-                const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-                
-                const { data, error } = await supabaseClient
-                    .from('tickets')
-                    .select('sr_no')
-                    .order('sr_no', { ascending: false })
-                    .limit(1);
-                
-                if (error) {
-                    console.warn('Error fetching SR NO:', error);
-                    document.getElementById('srNo').value = 1;
-                    return;
-                }
-                
-                let nextSrNo = 1;
-                if (data && data.length > 0 && data[0].sr_no) {
-                    nextSrNo = parseInt(data[0].sr_no) + 1;
-                }
-                
-                document.getElementById('srNo').value = nextSrNo;
-                console.log('Next SR NO:', nextSrNo);
-                
-            } catch (error) {
-                console.error('Error generating SR NO:', error);
-                document.getElementById('srNo').value = 1;
-            }
-        }
-        
-        // Function to save form data
-        async function saveFormData() {
             // Validate required fields
             const requiredFields = ['pnr', 'passengerName', 'travelDate', 'inboundDate', 'ticketNo', 'venAmount'];
             for (const fieldId of requiredFields) {
                 const field = document.getElementById(fieldId);
                 if (!field.value.trim()) {
-                    showNotification(`Please fill in ${fieldId.replace(/([A-Z])/g, ' $1').toLowerCase()}`, 'error');
+                    const fieldName = fieldId.replace(/([A-Z])/g, ' $1').toLowerCase();
+                    showNotification(`Please fill in ${fieldName}`, 'error');
                     field.focus();
                     return;
                 }
@@ -336,12 +302,7 @@
             saveButton.disabled = true;
             
             try {
-                // Check if Supabase is loaded
-                if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-                    throw new Error('Supabase library not loaded. Please refresh the page.');
-                }
-                
-                // Calculate earning one more time
+                // Calculate earning
                 const venAmount = parseFloat(document.getElementById('venAmount').value) || 0;
                 const revToClient = parseFloat(document.getElementById('revToClient').value) || 0;
                 const earning = venAmount - revToClient;
@@ -370,7 +331,12 @@
                     created_at: new Date().toISOString()
                 };
                 
-                console.log('Saving ticket data:', ticketData);
+                console.log('Preparing to save:', ticketData);
+                
+                // Check if Supabase is available
+                if (!window.supabase) {
+                    throw new Error('Supabase library not loaded. Please refresh the page.');
+                }
                 
                 // Initialize Supabase client
                 const supabaseUrl = 'https://lnvutfwzbsjvagipqgqb.supabase.co';
@@ -388,7 +354,7 @@
                     throw new Error(`Database error: ${error.message}`);
                 }
                 
-                console.log('Data saved successfully:', data);
+                console.log('Saved successfully:', data);
                 
                 // Show success message
                 showNotification(`✅ Ticket #${ticketData.sr_no} saved successfully!`, 'success');
@@ -397,15 +363,56 @@
                 setTimeout(() => {
                     clearForm();
                     generateNextSrNo();
-                }, 1500);
+                }, 1000);
                 
             } catch (error) {
-                console.error('Error saving ticket:', error);
+                console.error('Error saving:', error);
                 showNotification(`❌ Error: ${error.message}`, 'error');
             } finally {
                 // Restore button
                 saveButton.innerHTML = originalText;
                 saveButton.disabled = false;
+            }
+        }
+        
+        // Function to generate next SR NO
+        async function generateNextSrNo() {
+            try {
+                // Check if Supabase is available
+                if (!window.supabase) {
+                    console.log('Supabase not loaded yet, setting default SR NO');
+                    document.getElementById('srNo').value = 1;
+                    return;
+                }
+                
+                // Initialize Supabase client
+                const supabaseUrl = 'https://lnvutfwzbsjvagipqgqb.supabase.co';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxudnV0Znd6YnNqdmFnaXBxZ3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MDc3NTAsImV4cCI6MjA4NTI4Mzc1MH0.IF-4A234--HqN3RGhruMjwmvVUxCnX80YuAcLK2i4zs';
+                const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+                
+                const { data, error } = await supabaseClient
+                    .from('tickets')
+                    .select('sr_no')
+                    .order('sr_no', { ascending: false })
+                    .limit(1);
+                
+                if (error) {
+                    console.warn('Error fetching SR NO:', error);
+                    document.getElementById('srNo').value = 1;
+                    return;
+                }
+                
+                let nextSrNo = 1;
+                if (data && data.length > 0 && data[0].sr_no) {
+                    nextSrNo = parseInt(data[0].sr_no) + 1;
+                }
+                
+                document.getElementById('srNo').value = nextSrNo;
+                console.log('Generated SR NO:', nextSrNo);
+                
+            } catch (error) {
+                console.error('Error generating SR NO:', error);
+                document.getElementById('srNo').value = 1;
             }
         }
         
@@ -423,29 +430,34 @@
         
         // Function to clear form
         function clearForm() {
-            // Clear all fields
-            document.getElementById('pnr').value = '';
-            document.getElementById('passengerName').value = '';
-            document.getElementById('travelDate').value = '';
-            document.getElementById('inboundDate').value = '';
-            document.getElementById('expiryDate').value = '';
-            document.getElementById('refundType').value = '';
-            document.getElementById('sector').value = '';
-            document.getElementById('ticketNo').value = '';
-            document.getElementById('airline').value = '';
-            document.getElementById('agentName').value = '';
-            document.getElementById('vendor').value = '';
-            document.getElementById('remarks').value = '';
-            document.getElementById('venAmount').value = '';
-            document.getElementById('revToClient').value = '';
-            document.getElementById('earning').value = '';
+            console.log('Clearing form...');
             
-            // Set today's date
+            // Clear all input fields
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                if (input.id !== 'srNo' && input.id !== 'refundApplyDate') {
+                    if (input.type === 'select-one') {
+                        input.value = '';
+                    } else {
+                        input.value = '';
+                    }
+                }
+            });
+            
+            // Reset earning calculation
+            document.getElementById('earning').value = '0';
+            
+            // Set today's date for refund apply
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('refundApplyDate').value = today;
             
             // Show notification
             showNotification('Form cleared! Ready for next entry.', 'success');
+            
+            // Generate new SR NO
+            setTimeout(() => {
+                generateNextSrNo();
+            }, 500);
         }
     </script>
 </body>
