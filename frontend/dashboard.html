@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Refund Dashboard</title>
+    <!-- Include Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/style.css">
     <style>
         .dashboard-header {
@@ -76,6 +78,18 @@
             text-align: center;
             padding: 20px;
         }
+        
+        .refresh-btn {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
     </style>
 </head>
 <body>
@@ -92,6 +106,9 @@
                 <a href="index.html" class="btn btn-add-ticket">
                     ➕ Add Ticket
                 </a>
+                <button onclick="loadTickets()" class="refresh-btn">
+                    🔄 Refresh
+                </button>
                 <button onclick="exportToExcel()" class="btn btn-export">
                     📤 Export Excel
                 </button>
@@ -126,12 +143,13 @@
                         <th>Vendor</th>
                         <th>Vendor Amount</th>
                         <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="ticketsBody">
                     <tr id="loadingRow">
-                        <td colspan="9" class="loading">
-                            Loading tickets from Supabase...
+                        <td colspan="10" class="loading">
+                            Connecting to Supabase and loading tickets...
                         </td>
                     </tr>
                 </tbody>
@@ -140,99 +158,103 @@
     </div>
     
     <script>
-        // Supabase Configuration - REPLACE WITH YOUR ACTUAL SUPABASE CREDENTIALS
-        const SUPABASE_URL = 'https://your-project.supabase.co'; // Replace with your Supabase URL
-        const SUPABASE_KEY = 'your-anon-key'; // Replace with your Supabase anon key
+        // ================= SUPABASE CONFIGURATION =================
+        // IMPORTANT: Replace these with your actual Supabase credentials
+        // You can find these in your Supabase project settings > API
+        const SUPABASE_URL = 'https://nkdgibjhpmyaxvqmjiur.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZGdpYmpsaHBteWF4dnFtaml1ciIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzE5NDYzNDc3LCJleHAiOjIwMzUwMzk0Nzd9.YgX4t_9w6Y-QAVyMfpB1lQTZIVeOax9He28NV6qIr2A';
         
-        // Initialize tickets array
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Table name in Supabase (make sure this matches your table name)
+        const TABLE_NAME = 'refund_tickets';
+        
+        // ================= VARIABLES =================
         let refundTickets = [];
         
+        // ================= FUNCTIONS =================
+        
         // Function to load tickets from Supabase
-        async function loadTicketsFromSupabase() {
+        async function loadTickets() {
             try {
+                console.log('Loading tickets from Supabase...');
+                
                 // Show loading state
-                document.getElementById('loadingRow').innerHTML = '<td colspan="9" class="loading">Loading tickets from Supabase...</td>';
-                
-                // In a real implementation, you would use the Supabase JavaScript client
-                // For now, we'll simulate with localStorage as fallback
-                
-                // Check if we have data in localStorage (for demo purposes)
-                const storedData = localStorage.getItem('refund_tickets_supabase');
-                
-                if (storedData) {
-                    refundTickets = JSON.parse(storedData);
-                    console.log('Loaded tickets from localStorage:', refundTickets.length);
-                    populateTable();
-                } else {
-                    // If no data in localStorage, show demo data
-                    refundTickets = getDemoTickets();
-                    populateTable();
-                    console.log('Loaded demo tickets:', refundTickets.length);
+                const loadingRow = document.getElementById('loadingRow');
+                if (loadingRow) {
+                    loadingRow.innerHTML = '<td colspan="10" class="loading">🔄 Loading tickets from Supabase...</td>';
                 }
                 
-                // For real Supabase integration, you would use:
-                /*
+                // Fetch data from Supabase
                 const { data, error } = await supabase
-                    .from('refund_tickets')
+                    .from(TABLE_NAME)
                     .select('*')
-                    .order('created_at', { ascending: false });
+                    .order('created_at', { ascending: false }); // Show newest first
                 
-                if (error) throw error;
-                refundTickets = data;
+                if (error) {
+                    console.error('Supabase error:', error);
+                    throw error;
+                }
+                
+                console.log('Data received from Supabase:', data);
+                
+                if (!data || data.length === 0) {
+                    console.log('No tickets found in Supabase');
+                    refundTickets = [];
+                } else {
+                    // Transform Supabase data to match our format
+                    refundTickets = data.map((ticket, index) => ({
+                        srNo: index + 1,
+                        ticketNumber: ticket.ticket_number || ticket.ticketNumber || `TKT-${ticket.id}`,
+                        pnr: ticket.pnr || '',
+                        passengerName: ticket.passenger_name || ticket.passengerName || '',
+                        travelDate: ticket.travel_date || ticket.travelDate || '',
+                        expiryDate: ticket.expiry_date || ticket.expiryDate || '',
+                        vendor: ticket.vendor || '',
+                        vendorAmount: ticket.vendor_amount || ticket.vendorAmount || '0',
+                        status: ticket.status || 'PENDING',
+                        id: ticket.id // Keep the Supabase ID for updates/deletes
+                    }));
+                    
+                    console.log('Transformed tickets:', refundTickets);
+                }
+                
+                // Populate the table
                 populateTable();
-                */
+                
+                // Show success notification
+                showNotification(`Loaded ${refundTickets.length} tickets from Supabase`, 'success');
                 
             } catch (error) {
-                console.error('Error loading tickets:', error);
-                document.getElementById('loadingRow').innerHTML = '<td colspan="9" class="error">Error loading tickets. Please try again.</td>';
+                console.error('Error loading tickets from Supabase:', error);
                 
-                // Fallback to demo data
-                refundTickets = getDemoTickets();
-                populateTable();
-            }
-        }
-        
-        // Function to get demo tickets (fallback)
-        function getDemoTickets() {
-            return [
-                {
-                    srNo: 1,
-                    ticketNumber: "TKT-2024-001",
-                    pnr: "2V7BUA",
-                    passengerName: "Mr. Test Passenger",
-                    travelDate: "2026-02-21",
-                    expiryDate: "2026-01-31",
-                    vendor: "RYL",
-                    vendorAmount: "10,000",
-                    status: "PENDING"
-                },
-                {
-                    srNo: 2,
-                    ticketNumber: "TKT-2024-002",
-                    pnr: "EAYL95",
-                    passengerName: "Mr. Muhammad Ibraheem",
-                    travelDate: "2026-02-21",
-                    expiryDate: "2026-03-07",
-                    vendor: "QTB",
-                    vendorAmount: "37,349",
-                    status: "REFUNDED"
-                },
-                {
-                    srNo: 3,
-                    ticketNumber: "TKT-2024-003",
-                    pnr: "8C8LF9",
-                    passengerName: "Mr. Hussain Muzaffar",
-                    travelDate: "2026-02-21",
-                    expiryDate: "2026-03-14",
-                    vendor: "RYL",
-                    vendorAmount: "29,548",
-                    status: "PENDING"
+                // Show error in table
+                const tableBody = document.getElementById('ticketsBody');
+                if (tableBody) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="10" class="error">
+                                ❌ Error loading tickets: ${error.message}<br>
+                                Check browser console for details.
+                            </td>
+                        </tr>
+                    `;
                 }
-            ];
+                
+                // Show error notification
+                showNotification('Failed to load tickets from Supabase', 'error');
+                
+                // Update stats to show error
+                document.getElementById('totalTickets').textContent = 'Error';
+                document.getElementById('expiringCount').textContent = 'Error';
+                document.getElementById('totalAmount').textContent = 'Error';
+            }
         }
         
         // Function to check if a ticket is expiring soon (within 3 days)
         function isExpiringSoon(expiryDate) {
+            if (!expiryDate) return false;
             const today = new Date();
             const expiry = new Date(expiryDate);
             const diffTime = expiry - today;
@@ -242,6 +264,7 @@
         
         // Function to check if a ticket is expired
         function isExpired(expiryDate) {
+            if (!expiryDate) return false;
             const today = new Date();
             const expiry = new Date(expiryDate);
             return expiry < today;
@@ -249,6 +272,7 @@
         
         // Function to format date
         function formatDate(dateString) {
+            if (!dateString) return 'N/A';
             try {
                 const date = new Date(dateString);
                 if (isNaN(date.getTime())) return dateString;
@@ -275,37 +299,29 @@
             if (!refundTickets || refundTickets.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="9" class="loading">
-                            No tickets found. Click "Add Ticket" to create your first refund ticket.
+                        <td colspan="10" class="loading">
+                            📭 No tickets found in Supabase.<br>
+                            Click "Add Ticket" to create your first refund ticket.
                         </td>
                     </tr>
                 `;
                 
                 // Update statistics
-                document.getElementById('totalTickets').textContent = '0';
-                document.getElementById('expiringCount').textContent = '0';
-                document.getElementById('totalAmount').textContent = '0';
+                updateStatistics();
                 return;
             }
             
             tableBody.innerHTML = '';
             
-            let totalAmount = 0;
-            let expiringCount = 0;
-            
             refundTickets.forEach((ticket, index) => {
                 const row = document.createElement('tr');
                 
-                // Ensure srNo is correct (use index + 1)
+                // Update serial number
                 ticket.srNo = index + 1;
-                
-                // Calculate totals
-                const amount = parseInt(ticket.vendorAmount?.replace(/,/g, '') || '0') || 0;
-                totalAmount += amount;
                 
                 // Check expiry
                 let expiryClass = '';
-                let expiryDisplay = formatDate(ticket.expiryDate || '');
+                let expiryDisplay = formatDate(ticket.expiryDate);
                 
                 if (ticket.expiryDate && isExpired(ticket.expiryDate)) {
                     expiryClass = 'expiring';
@@ -313,7 +329,6 @@
                 } else if (ticket.expiryDate && isExpiringSoon(ticket.expiryDate)) {
                     expiryClass = 'expiring';
                     expiryDisplay = '⏰ ' + expiryDisplay + ' (Soon)';
-                    expiringCount++;
                 }
                 
                 // Status badge
@@ -328,27 +343,109 @@
                     statusClass = 'status-processing';
                 }
                 
-                // CORRECT DATA MAPPING - Each property goes to its correct column
-                // NO INDIAN RUPEE SYMBOL - Removed ₹
+                // Generate table row with all data
+                // NO INDIAN RUPEE SYMBOL - using plain numbers
                 row.innerHTML = `
                     <td>${ticket.srNo}</td>
-                    <td>${ticket.ticketNumber || 'N/A'}</td>
+                    <td><strong>${ticket.ticketNumber || 'N/A'}</strong></td>
                     <td>${ticket.pnr || 'N/A'}</td>
                     <td>${ticket.passengerName || 'N/A'}</td>
-                    <td>${formatDate(ticket.travelDate || '')}</td>
+                    <td>${formatDate(ticket.travelDate)}</td>
                     <td class="${expiryClass}">${expiryDisplay}</td>
                     <td>${ticket.vendor || 'N/A'}</td>
                     <td>${ticket.vendorAmount || '0'}</td>
                     <td><span class="${statusClass}">${statusText}</span></td>
+                    <td>
+                        <button onclick="editTicket('${ticket.id}')" class="btn-small" style="background: #3b82f6; color: white; padding: 4px 8px; border-radius: 4px; border: none; cursor: pointer; margin-right: 5px;">
+                            Edit
+                        </button>
+                        <button onclick="deleteTicket('${ticket.id}')" class="btn-small" style="background: #ef4444; color: white; padding: 4px 8px; border-radius: 4px; border: none; cursor: pointer;">
+                            Delete
+                        </button>
+                    </td>
                 `;
                 
                 tableBody.appendChild(row);
             });
             
             // Update statistics
-            document.getElementById('totalTickets').textContent = refundTickets.length;
+            updateStatistics();
+        }
+        
+        // Function to update statistics
+        function updateStatistics() {
+            if (!refundTickets || refundTickets.length === 0) {
+                document.getElementById('totalTickets').textContent = '0';
+                document.getElementById('expiringCount').textContent = '0';
+                document.getElementById('totalAmount').textContent = '0';
+                return;
+            }
+            
+            const totalTickets = refundTickets.length;
+            const expiringCount = refundTickets.filter(ticket => 
+                ticket.expiryDate && isExpiringSoon(ticket.expiryDate)
+            ).length;
+            
+            const totalAmount = refundTickets.reduce((sum, ticket) => {
+                const amount = parseInt(ticket.vendorAmount?.replace(/,/g, '') || '0') || 0;
+                return sum + amount;
+            }, 0);
+            
+            document.getElementById('totalTickets').textContent = totalTickets;
             document.getElementById('expiringCount').textContent = expiringCount;
             document.getElementById('totalAmount').textContent = totalAmount.toLocaleString();
+        }
+        
+        // Function to delete a ticket from Supabase
+        async function deleteTicket(ticketId) {
+            if (!confirm('Are you sure you want to delete this ticket?')) {
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from(TABLE_NAME)
+                    .delete()
+                    .eq('id', ticketId);
+                
+                if (error) throw error;
+                
+                // Reload tickets after deletion
+                await loadTickets();
+                showNotification('Ticket deleted successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error deleting ticket:', error);
+                showNotification('Failed to delete ticket', 'error');
+            }
+        }
+        
+        // Function to edit a ticket
+        async function editTicket(ticketId) {
+            const ticket = refundTickets.find(t => t.id === ticketId);
+            if (!ticket) return;
+            
+            const newStatus = prompt('Update Ticket Status (PENDING, PROCESSING, REFUNDED):', ticket.status);
+            if (newStatus && ['PENDING', 'PROCESSING', 'REFUNDED'].includes(newStatus.toUpperCase())) {
+                try {
+                    const { error } = await supabase
+                        .from(TABLE_NAME)
+                        .update({ status: newStatus.toUpperCase() })
+                        .eq('id', ticketId);
+                    
+                    if (error) throw error;
+                    
+                    // Reload tickets after update
+                    await loadTickets();
+                    showNotification('Ticket status updated!', 'success');
+                    
+                } catch (error) {
+                    console.error('Error updating ticket:', error);
+                    showNotification('Failed to update ticket', 'error');
+                }
+            } else if (newStatus) {
+                showNotification('Invalid status. Use: PENDING, PROCESSING, or REFUNDED', 'error');
+            }
         }
         
         // Function to export to Excel
@@ -424,7 +521,7 @@
             }, 3000);
         }
         
-        // Add CSS animations for notification and status badges
+        // Add CSS for status badges and animations
         const style = document.createElement('style');
         style.textContent = `
             .status-pending {
@@ -478,18 +575,26 @@
                     opacity: 0;
                 }
             }
+            
+            .btn-small {
+                font-size: 12px;
+                padding: 4px 8px;
+                margin: 2px;
+            }
         `;
         document.head.appendChild(style);
         
         // Initialize dashboard when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Dashboard loading...');
-            loadTicketsFromSupabase();
+            console.log('Dashboard initializing...');
+            console.log('Supabase URL:', SUPABASE_URL);
+            console.log('Table name:', TABLE_NAME);
             
-            // Optional: Add auto-refresh every 30 seconds
-            setInterval(() => {
-                loadTicketsFromSupabase();
-            }, 30000);
+            // Load tickets immediately
+            loadTickets();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadTickets, 30000);
         });
 
     </script>
