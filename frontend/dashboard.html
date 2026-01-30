@@ -340,106 +340,118 @@
         }
         
         // Function to populate the table
-        function populateTable() {
-            const tableBody = document.getElementById('ticketsBody');
-            const loadingRow = document.getElementById('loadingRow');
-            
-            // Remove loading row if it exists
-            if (loadingRow && loadingRow.parentNode) {
-                loadingRow.remove();
-            }
-            
-            if (!refundTickets || refundTickets.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="19" class="loading">
-                            📭 No tickets found in Supabase.<br>
-                            Click "Add Ticket" to create your first refund ticket.
-                        </td>
-                    </tr>
-                `;
-                
-                // Update statistics
-                updateStatistics();
-                return;
-            }
-            
-            tableBody.innerHTML = '';
-            
-            let totalAmount = 0;
-            let expiringCount = 0;
-            
-            refundTickets.forEach((ticket, index) => {
-                const row = document.createElement('tr');
-                
-                // Calculate totals - handle both string and number types
-                    let vendorAmountStr = ticket.vendorAmount;
-                    if (typeof vendorAmountStr !== 'string') {
-                vendorAmountStr = String(vendorAmountStr || '0');
-                }
-                const amount = parseFloat(vendorAmountStr.replace(/,/g, '') || '0') || 0;
-                
-                // Check expiry
-                let expiryClass = '';
-                let expiryDisplay = formatDate(ticket.expiryDate);
-                
-                if (ticket.expiryDate && isExpired(ticket.expiryDate)) {
-                    expiryClass = 'expiring';
-                    expiryDisplay = '⚠️ ' + expiryDisplay + ' (Expired)';
-                } else if (ticket.expiryDate && isExpiringSoon(ticket.expiryDate)) {
-                    expiryClass = 'expiring';
-                    expiryDisplay = '⏰ ' + expiryDisplay + ' (Soon)';
-                    expiringCount++;
-                }
-                
-                // Status badge
-                let statusClass = '';
-                let statusText = ticket.status || 'PENDING';
-                
-                if (statusText === 'PENDING') {
-                    statusClass = 'status-pending';
-                } else if (statusText === 'REFUNDED') {
-                    statusClass = 'status-refunded';
-                } else if (statusText === 'PROCESSING') {
-                    statusClass = 'status-processing';
-                }
-                
-                // Generate table row with ALL fields
-                row.innerHTML = `
-                    <td>${ticket.srNo || 'N/A'}</td>
-                    <td>${ticket.pnr || 'N/A'}</td>
-                    <td>${ticket.passengerName || 'N/A'}</td>
-                    <td>${formatDate(ticket.travelDate)}</td>
-                    <td>${formatDate(ticket.inboundDate)}</td>
-                    <td class="${expiryClass}">${expiryDisplay}</td>
-                    <td>${ticket.refundType || 'N/A'}</td>
-                    <td>${ticket.sector || 'N/A'}</td>
-                    <td><strong>${ticket.ticketNumber || 'N/A'}</strong></td>
-                    <td>${ticket.airline || 'N/A'}</td>
-                    <td>${ticket.agentName || 'N/A'}</td>
-                    <td>${ticket.vendor || 'N/A'}</td>
-                    <td>${formatDate(ticket.refundApplyDate)}</td>
-                    <td>${ticket.vendorAmount || '0'}</td>
-                    <td>${ticket.revToClient || '0'}</td>
-                    <td>${ticket.earning || '0'}</td>
-                    <td>${ticket.remarks || 'N/A'}</td>
-                    <td><span class="${statusClass}">${statusText}</span></td>
-                    <td>
-                        <button onclick="editTicket('${ticket.id}')" class="btn-small btn-edit">
-                            Edit
-                        </button>
-                        <button onclick="deleteTicket('${ticket.id}')" class="btn-small btn-delete">
-                            Delete
-                        </button>
-                    </td>
-                `;
-                
-                tableBody.appendChild(row);
-            });
-            
-            // Update statistics
-            updateStatistics(totalAmount, expiringCount);
+        // Function to populate the table
+function populateTable() {
+    const tableBody = document.getElementById('ticketsBody');
+    const loadingRow = document.getElementById('loadingRow');
+    
+    // Remove loading row if it exists
+    if (loadingRow && loadingRow.parentNode) {
+        loadingRow.remove();
+    }
+    
+    if (!refundTickets || refundTickets.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="19" class="loading">
+                    📭 No tickets found in Supabase.<br>
+                    Click "Add Ticket" to create your first refund ticket.
+                </td>
+            </tr>
+        `;
+        
+        // Update statistics
+        updateStatistics();
+        return;
+    }
+    
+    tableBody.innerHTML = '';
+    
+    let totalAmount = 0;
+    let expiringCount = 0;
+    
+    refundTickets.forEach((ticket, index) => {
+        const row = document.createElement('tr');
+        
+        // Helper function to safely convert to string
+        function safeToString(value) {
+            if (value === null || value === undefined) return '0';
+            if (typeof value === 'string') return value;
+            return String(value);
         }
+        
+        // Helper function to safely parse float
+        function safeParseFloat(value) {
+            const str = safeToString(value);
+            const num = parseFloat(str.replace(/,/g, ''));
+            return isNaN(num) ? 0 : num;
+        }
+        
+        // Calculate totals
+        const amount = safeParseFloat(ticket.vendorAmount);
+        totalAmount += amount;
+        
+        // Check expiry
+        let expiryClass = '';
+        let expiryDisplay = formatDate(ticket.expiryDate);
+        
+        if (ticket.expiryDate && isExpired(ticket.expiryDate)) {
+            expiryClass = 'expiring';
+            expiryDisplay = '⚠️ ' + expiryDisplay + ' (Expired)';
+        } else if (ticket.expiryDate && isExpiringSoon(ticket.expiryDate)) {
+            expiryClass = 'expiring';
+            expiryDisplay = '⏰ ' + expiryDisplay + ' (Soon)';
+            expiringCount++;
+        }
+        
+        // Status badge
+        let statusClass = '';
+        let statusText = ticket.status || 'PENDING';
+        
+        if (statusText === 'PENDING') {
+            statusClass = 'status-pending';
+        } else if (statusText === 'REFUNDED') {
+            statusClass = 'status-refunded';
+        } else if (statusText === 'PROCESSING') {
+            statusClass = 'status-processing';
+        }
+        
+        // Generate table row with ALL fields
+        row.innerHTML = `
+            <td>${ticket.srNo || 'N/A'}</td>
+            <td>${ticket.pnr || 'N/A'}</td>
+            <td>${ticket.passengerName || 'N/A'}</td>
+            <td>${formatDate(ticket.travelDate)}</td>
+            <td>${formatDate(ticket.inboundDate)}</td>
+            <td class="${expiryClass}">${expiryDisplay}</td>
+            <td>${ticket.refundType || 'N/A'}</td>
+            <td>${ticket.sector || 'N/A'}</td>
+            <td><strong>${ticket.ticketNumber || 'N/A'}</strong></td>
+            <td>${ticket.airline || 'N/A'}</td>
+            <td>${ticket.agentName || 'N/A'}</td>
+            <td>${ticket.vendor || 'N/A'}</td>
+            <td>${formatDate(ticket.refundApplyDate)}</td>
+            <td>${safeToString(ticket.vendorAmount)}</td>
+            <td>${safeToString(ticket.revToClient)}</td>
+            <td>${safeToString(ticket.earning)}</td>
+            <td>${ticket.remarks || 'N/A'}</td>
+            <td><span class="${statusClass}">${statusText}</span></td>
+            <td>
+                <button onclick="editTicket('${ticket.id}')" class="btn-small btn-edit">
+                    Edit
+                </button>
+                <button onclick="deleteTicket('${ticket.id}')" class="btn-small btn-delete">
+                    Delete
+                </button>
+            </td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+    
+    // Update statistics
+    updateStatistics(totalAmount, expiringCount);
+}
         
         // Function to update statistics
         function updateStatistics(totalAmount = 0, expiringCount = 0) {
@@ -514,7 +526,8 @@
             const newStatus = prompt('Enter new status (PENDING, PROCESSING, REFUNDED):', ticket.status);
             if (!newStatus) return;
             
-            const newVendorAmount = prompt('Enter new vendor amount:', ticket.vendorAmount || '0');
+            const vendorAmountDisplay = String(ticket.vendorAmount || '0');
+            const newVendorAmount = prompt('Enter new vendor amount:', vendorAmountDisplay);
             if (newVendorAmount === null) return;
             
             const newRemarks = prompt('Enter new remarks:', ticket.remarks || '');
