@@ -198,38 +198,17 @@
     <!-- Notification -->
     <div class="notification" id="notification"></div>
     
+    <!-- Load Supabase script first -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <script>
-        // IMPORTANT: Remove the duplicate Supabase script if you have it elsewhere
-        // Only keep this single Supabase initialization
-        
-        // Supabase configuration
-        const SUPABASE_URL = 'https://lnvutfwzbsjvagipqgqb.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxudnV0Znd6YnNqdmFnaXBxZ3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MDc3NTAsImV4cCI6MjA4NTI4Mzc1MH0.IF-4A234--HqN3RGhruMjwmvVUxCnX80YuAcLK2i4zs';
-        const TABLE_NAME = 'tickets';
-        
-        // Global variables
-        let supabaseClient = null;
-        
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Initializing application...');
-            
-            try {
-                // Initialize Supabase client (ONCE)
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                console.log('Supabase client initialized successfully');
-            } catch (error) {
-                console.error('Failed to initialize Supabase:', error);
-                showNotification('Failed to initialize database connection', 'error');
-                return;
-            }
+        // Wait for everything to load including Supabase
+        window.addEventListener('load', function() {
+            console.log('Window fully loaded, initializing application...');
             
             // Set default dates
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('refundApplyDate').value = today;
-            
-            // Generate SR NO
-            generateNextSrNo();
             
             // Setup earning calculation
             setupEarningCalculation();
@@ -246,6 +225,11 @@
                     document.getElementById('expiryDate').value = expiryDate.toISOString().split('T')[0];
                 }
             });
+            
+            // Generate SR NO after Supabase is loaded
+            setTimeout(() => {
+                generateNextSrNo();
+            }, 500);
             
             console.log('Application initialized successfully');
         });
@@ -274,29 +258,40 @@
             const saveButton = document.getElementById('saveButton');
             const form = document.getElementById('refundForm');
             
-            // Remove any existing form submit behavior
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                return false;
-            });
+            // Prevent form submission
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    return false;
+                });
+            }
             
             // Handle save button click
-            saveButton.addEventListener('click', async function() {
-                console.log('Save button clicked');
-                await saveFormData();
-            });
+            if (saveButton) {
+                saveButton.addEventListener('click', async function() {
+                    console.log('Save button clicked');
+                    await saveFormData();
+                });
+            }
         }
         
         // Function to generate next SR NO
         async function generateNextSrNo() {
-            if (!supabaseClient) {
-                console.error('Supabase client not initialized');
-                return;
-            }
-            
             try {
+                // Check if Supabase is loaded
+                if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+                    console.warn('Supabase not loaded yet, setting default SR NO');
+                    document.getElementById('srNo').value = 1;
+                    return;
+                }
+                
+                // Initialize Supabase client
+                const supabaseUrl = 'https://lnvutfwzbsjvagipqgqb.supabase.co';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxudnV0Znd6YnNqdmFnaXBxZ3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MDc3NTAsImV4cCI6MjA4NTI4Mzc1MH0.IF-4A234--HqN3RGhruMjwmvVUxCnX80YuAcLK2i4zs';
+                const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+                
                 const { data, error } = await supabaseClient
-                    .from(TABLE_NAME)
+                    .from('tickets')
                     .select('sr_no')
                     .order('sr_no', { ascending: false })
                     .limit(1);
@@ -323,11 +318,6 @@
         
         // Function to save form data
         async function saveFormData() {
-            if (!supabaseClient) {
-                showNotification('Database not initialized', 'error');
-                return;
-            }
-            
             // Validate required fields
             const requiredFields = ['pnr', 'passengerName', 'travelDate', 'inboundDate', 'ticketNo', 'venAmount'];
             for (const fieldId of requiredFields) {
@@ -346,6 +336,11 @@
             saveButton.disabled = true;
             
             try {
+                // Check if Supabase is loaded
+                if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+                    throw new Error('Supabase library not loaded. Please refresh the page.');
+                }
+                
                 // Calculate earning one more time
                 const venAmount = parseFloat(document.getElementById('venAmount').value) || 0;
                 const revToClient = parseFloat(document.getElementById('revToClient').value) || 0;
@@ -377,9 +372,14 @@
                 
                 console.log('Saving ticket data:', ticketData);
                 
+                // Initialize Supabase client
+                const supabaseUrl = 'https://lnvutfwzbsjvagipqgqb.supabase.co';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxudnV0Znd6YnNqdmFnaXBxZ3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MDc3NTAsImV4cCI6MjA4NTI4Mzc1MH0.IF-4A234--HqN3RGhruMjwmvVUxCnX80YuAcLK2i4zs';
+                const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+                
                 // Save to Supabase
                 const { data, error } = await supabaseClient
-                    .from(TABLE_NAME)
+                    .from('tickets')
                     .insert([ticketData])
                     .select();
                 
@@ -423,9 +423,6 @@
         
         // Function to clear form
         function clearForm() {
-            // Get current SR NO
-            const currentSrNo = document.getElementById('srNo').value;
-            
             // Clear all fields
             document.getElementById('pnr').value = '';
             document.getElementById('passengerName').value = '';
