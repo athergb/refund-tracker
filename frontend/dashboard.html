@@ -372,9 +372,12 @@
             refundTickets.forEach((ticket, index) => {
                 const row = document.createElement('tr');
                 
-                // Calculate totals
-                const amount = parseFloat(ticket.vendorAmount?.replace(/,/g, '') || '0') || 0;
-                totalAmount += amount;
+                // Calculate totals - handle both string and number types
+                    let vendorAmountStr = ticket.vendorAmount;
+                    if (typeof vendorAmountStr !== 'string') {
+                vendorAmountStr = String(vendorAmountStr || '0');
+                }
+                const amount = parseFloat(vendorAmountStr.replace(/,/g, '') || '0') || 0;
                 
                 // Check expiry
                 let expiryClass = '';
