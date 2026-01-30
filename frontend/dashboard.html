@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Refund Dashboard</title>
-    <!-- Include Supabase JS Client -->
+    <!-- Include Supabase JS Client - ONLY ONCE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/style.css">
     <style>
@@ -164,8 +164,17 @@
         const SUPABASE_URL = 'https://lnvutfwzbsjvagipqgqb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxudnV0Znd6YnNqdmFnaXBxZ3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MDc3NTAsImV4cCI6MjA4NTI4Mzc1MH0.IF-4A234--HqN3RGhruMjwmvVUxCnX80YuAcLK2i4zs';
         
-        // Initialize Supabase client
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // CHECK if supabase is already initialized
+        let supabaseClient;
+        if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+            // Supabase is already loaded, just create client
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('Supabase client created successfully');
+        } else {
+            console.error('Supabase library not loaded properly');
+            // Show error to user
+            document.getElementById('loadingRow').innerHTML = '<td colspan="10" class="error">Error: Supabase library failed to load. Please refresh the page.</td>';
+        }
         
         // Table name in Supabase (make sure this matches your table name)
         const TABLE_NAME = 'refund_tickets';
@@ -186,8 +195,13 @@
                     loadingRow.innerHTML = '<td colspan="10" class="loading">🔄 Loading tickets from Supabase...</td>';
                 }
                 
+                // Check if supabaseClient is available
+                if (!supabaseClient) {
+                    throw new Error('Supabase client not initialized');
+                }
+                
                 // Fetch data from Supabase
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from(TABLE_NAME)
                     .select('*')
                     .order('created_at', { ascending: false }); // Show newest first
@@ -252,6 +266,7 @@
             }
         }
         
+        // Rest of your functions remain EXACTLY THE SAME...
         // Function to check if a ticket is expiring soon (within 3 days)
         function isExpiringSoon(expiryDate) {
             if (!expiryDate) return false;
@@ -403,7 +418,7 @@
             }
             
             try {
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from(TABLE_NAME)
                     .delete()
                     .eq('id', ticketId);
@@ -428,7 +443,7 @@
             const newStatus = prompt('Update Ticket Status (PENDING, PROCESSING, REFUNDED):', ticket.status);
             if (newStatus && ['PENDING', 'PROCESSING', 'REFUNDED'].includes(newStatus.toUpperCase())) {
                 try {
-                    const { error } = await supabase
+                    const { error } = await supabaseClient
                         .from(TABLE_NAME)
                         .update({ status: newStatus.toUpperCase() })
                         .eq('id', ticketId);
