@@ -6,7 +6,6 @@
     <title>Refund Dashboard</title>
     <!-- Include Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/style.css">
     <style>
         .dashboard-header {
             display: flex;
@@ -395,6 +394,69 @@
             white-space: nowrap;
             z-index: 1000;
         }
+        
+        /* Modal styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .modal-button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .modal-button-cancel {
+            background: #ccc;
+            color: #333;
+        }
+        
+        .modal-button-save {
+            background: #4f46e5;
+            color: white;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .modal-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -472,6 +534,22 @@
     </div>
     
     <script>
+        // ================= GLOBAL HELPER FUNCTIONS =================
+        
+        // Helper function to safely convert to string
+        window.safeToString = function(value) {
+            if (value === null || value === undefined) return '0';
+            if (typeof value === 'string') return value;
+            return String(value);
+        };
+        
+        // Helper function to safely parse float
+        window.safeParseFloat = function(value) {
+            const str = window.safeToString(value);
+            const num = parseFloat(str.replace(/,/g, ''));
+            return isNaN(num) ? 0 : num;
+        };
+        
         // ================= SUPABASE CONFIGURATION =================
         const SUPABASE_URL = 'https://lnvutfwzbsjvagipqgqb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxudnV0Znd6YnNqdmFnaXBxZ3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MDc3NTAsImV4cCI6MjA4NTI4Mzc1MH0.IF-4A234--HqN3RGhruMjwmvVUxCnX80YuAcLK2i4zs';
@@ -484,22 +562,6 @@
         
         // ================= VARIABLES =================
         let refundTickets = [];
-        
-        // ================= HELPER FUNCTIONS =================
-        
-        // Helper function to safely convert to string
-        function safeToString(value) {
-            if (value === null || value === undefined) return '0';
-            if (typeof value === 'string') return value;
-            return String(value);
-        }
-        
-        // Helper function to safely parse float
-        function safeParseFloat(value) {
-            const str = safeToString(value);
-            const num = parseFloat(str.replace(/,/g, ''));
-            return isNaN(num) ? 0 : num;
-        }
         
         // ================= MAIN FUNCTIONS =================
         
@@ -664,7 +726,7 @@
                 const row = document.createElement('tr');
                 
                 // Calculate totals
-                const amount = safeParseFloat(ticket.vendorAmount);
+                const amount = window.safeParseFloat(ticket.vendorAmount);
                 totalAmount += amount;
                 
                 // Check expiry
@@ -706,7 +768,7 @@
                 
                 // Format amounts compactly
                 const formatAmount = (value) => {
-                    const num = safeParseFloat(value);
+                    const num = window.safeParseFloat(value);
                     if (num >= 1000000) return (num/1000000).toFixed(1) + 'M';
                     if (num >= 1000) return (num/1000).toFixed(1) + 'K';
                     return num.toFixed(0);
@@ -745,9 +807,9 @@
                     <td title="${ticket.agentName || ''}">${shortAgent}</td>
                     <td>${ticket.vendor || ''}</td>
                     <td title="${ticket.refundApplyDate || ''}">${formatDate(ticket.refundApplyDate)}</td>
-                    <td style="text-align: right;" title="${safeToString(ticket.vendorAmount)}">${formatAmount(ticket.vendorAmount)}</td>
-                    <td style="text-align: right;" title="${safeToString(ticket.revToClient)}">${formatAmount(ticket.revToClient)}</td>
-                    <td style="text-align: right;" title="${safeToString(ticket.earning)}">${formatAmount(ticket.earning)}</td>
+                    <td style="text-align: right;" title="${window.safeToString(ticket.vendorAmount)}">${formatAmount(ticket.vendorAmount)}</td>
+                    <td style="text-align: right;" title="${window.safeToString(ticket.revToClient)}">${formatAmount(ticket.revToClient)}</td>
+                    <td style="text-align: right;" title="${window.safeToString(ticket.earning)}">${formatAmount(ticket.earning)}</td>
                     <td title="${ticket.remarks || ''}">${shortRemarks}</td>
                     <td><span class="${statusClass}">${statusText.charAt(0)}</span></td>
                 `;
@@ -825,53 +887,42 @@
                 return;
             }
             
-            // Create a better edit interface
-            const editForm = `
-                <div style="padding: 20px; background: white; border-radius: 10px; max-width: 500px;">
+            // Create modal overlay
+            const modalOverlay = document.createElement('div');
+            modalOverlay.className = 'modal-overlay';
+            
+            // Create modal content
+            modalOverlay.innerHTML = `
+                <div class="modal-content">
                     <h3 style="margin-bottom: 20px;">Edit Ticket #${ticket.srNo}</h3>
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Status:</label>
-                        <select id="editStatus" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        <label class="modal-label">Status:</label>
+                        <select id="editStatus" class="modal-input">
                             <option value="PENDING" ${ticket.status === 'PENDING' ? 'selected' : ''}>PENDING</option>
                             <option value="PROCESSING" ${ticket.status === 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
                             <option value="REFUNDED" ${ticket.status === 'REFUNDED' ? 'selected' : ''}>REFUNDED</option>
                         </select>
                     </div>
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Vendor Amount:</label>
-                        <input type="number" id="editVendorAmount" value="${ticket.vendorAmount}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        <label class="modal-label">Vendor Amount:</label>
+                        <input type="number" id="editVendorAmount" value="${ticket.vendorAmount}" class="modal-input">
                     </div>
                     <div style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Remarks:</label>
-                        <textarea id="editRemarks" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; height: 80px;">${ticket.remarks || ''}</textarea>
+                        <label class="modal-label">Remarks:</label>
+                        <textarea id="editRemarks" class="modal-input" style="height: 80px;">${ticket.remarks || ''}</textarea>
                     </div>
-                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                        <button id="cancelEdit" style="padding: 8px 20px; background: #ccc; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
-                        <button id="saveEdit" style="padding: 8px 20px; background: #4f46e5; color: white; border: none; border-radius: 5px; cursor: pointer;">Save Changes</button>
+                    <div class="modal-buttons">
+                        <button id="cancelEdit" class="modal-button modal-button-cancel">Cancel</button>
+                        <button id="saveEdit" class="modal-button modal-button-save">Save Changes</button>
                     </div>
                 </div>
             `;
             
-            // Create modal
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-            `;
-            modal.innerHTML = editForm;
-            document.body.appendChild(modal);
+            document.body.appendChild(modalOverlay);
             
             // Add event listeners to modal buttons
             document.getElementById('cancelEdit').addEventListener('click', () => {
-                document.body.removeChild(modal);
+                document.body.removeChild(modalOverlay);
             });
             
             document.getElementById('saveEdit').addEventListener('click', async () => {
@@ -897,7 +948,7 @@
                     if (error) throw error;
                     
                     // Remove modal
-                    document.body.removeChild(modal);
+                    document.body.removeChild(modalOverlay);
                     
                     // Reload tickets after update
                     await loadTickets();
@@ -910,9 +961,9 @@
             });
             
             // Close modal when clicking outside
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    document.body.removeChild(modal);
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) {
+                    document.body.removeChild(modalOverlay);
                 }
             });
         }
@@ -953,9 +1004,9 @@
                         ticket.agentName || '',
                         ticket.vendor || '',
                         ticket.refundApplyDate || '',
-                        (safeToString(ticket.vendorAmount)).replace(/,/g, ''),
-                        (safeToString(ticket.revToClient)).replace(/,/g, ''),
-                        (safeToString(ticket.earning)).replace(/,/g, ''),
+                        (window.safeToString(ticket.vendorAmount)).replace(/,/g, ''),
+                        (window.safeToString(ticket.revToClient)).replace(/,/g, ''),
+                        (window.safeToString(ticket.earning)).replace(/,/g, ''),
                         `"${ticket.remarks || ''}"`,
                         ticket.status || ''
                     ];
@@ -1037,6 +1088,12 @@
             
             // Auto-refresh every 30 seconds
             setInterval(loadTickets, 30000);
+            
+            // Make functions available globally
+            window.loadTickets = loadTickets;
+            window.exportToExcel = exportToExcel;
+            window.editTicket = editTicket;
+            window.deleteTicket = deleteTicket;
         });
 
     </script>
