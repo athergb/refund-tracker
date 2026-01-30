@@ -258,12 +258,12 @@
                         expiryDate: ticket.expiry_date || '',
                         refundType: ticket.refund_type || '',
                         sector: ticket.sector || '',
-                        ticketNumber: ticket.ticket_number || '', // FIXED: Use actual ticket number from form
+                        ticketNumber: ticket.ticket_no || '', // FIXED: Use actual ticket number from form
                         airline: ticket.airline || '',
                         agentName: ticket.agent_name || '',
                         vendor: ticket.vendor || '',
                         refundApplyDate: ticket.refund_apply_date || '',
-                        vendorAmount: ticket.vendor_amount || '0', // FIXED: Use vendor_amount from database
+                        vendorAmount: ticket.ven_amount || '0', // FIXED: Use vendor_amount from database
                         revToClient: ticket.rev_to_client || '0',
                         earning: ticket.earning || '0',
                         remarks: ticket.remarks || '',
