@@ -12,110 +12,275 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 15px;
+            margin-bottom: 20px;
         }
         
         .stat-card {
             background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 15px;
+            border-radius: 8px;
             text-align: center;
         }
         
         .stat-value {
-            font-size: 32px;
+            font-size: 24px;
             font-weight: bold;
             color: #667eea;
         }
         
+        /* Compact table styling */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 15px;
+            font-size: 12px; /* Smaller font size */
         }
         
         th, td {
-            padding: 12px;
+            padding: 8px 6px; /* Smaller padding */
             text-align: left;
-            border-bottom: 1px solid #ddd;
-            font-size: 14px;
+            border-bottom: 1px solid #e0e0e0;
+            line-height: 1.3;
         }
         
         th {
-            background: #f8f9fa;
-            font-weight: bold;
+            background: #f5f7fa;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 11px; /* Smaller header font */
             white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
         
         .expiring {
-            color: #ff6b6b;
-            font-weight: bold;
-        }
-        
-        .export-btn {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
+            color: #e53e3e;
+            font-weight: 600;
         }
         
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 30px;
             color: #667eea;
             font-style: italic;
+            font-size: 14px;
         }
         
         .error {
-            color: #ff6b6b;
+            color: #e53e3e;
             text-align: center;
-            padding: 40px;
+            padding: 30px;
+            font-size: 14px;
         }
         
         .refresh-btn {
             background: #f59e0b;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 5px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            font-size: 13px;
         }
         
-        /* Scrollable table */
+        /* Compact table container */
         .table-container {
-            overflow-x: auto;
+            width: 100%;
             max-width: 100%;
+            overflow: visible;
         }
         
+        /* Make table fit on page */
+        table {
+            min-width: 100%;
+        }
+        
+        /* Compact buttons */
         .btn-small {
-            font-size: 12px;
-            padding: 4px 8px;
-            margin: 2px;
+            font-size: 11px;
+            padding: 3px 6px;
+            margin: 1px;
             border: none;
-            border-radius: 4px;
+            border-radius: 3px;
             cursor: pointer;
+            white-space: nowrap;
         }
         
         .btn-edit {
-            background: #3b82f6;
+            background: #4299e1;
             color: white;
         }
         
         .btn-delete {
-            background: #ef4444;
+            background: #f56565;
             color: white;
+        }
+        
+        /* Status badges */
+        .status-pending {
+            background: #fed7d7;
+            color: #c05621;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .status-refunded {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .status-processing {
+            background: #bee3f8;
+            color: #2a4365;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        /* Action buttons container */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .btn-add-ticket {
+            background: #4f46e5;
+            color: white;
+        }
+        
+        .btn-export {
+            background: #10b981;
+            color: white;
+        }
+        
+        /* Column width adjustments */
+        td:nth-child(1), th:nth-child(1) { /* SR NO */
+            width: 50px;
+            min-width: 50px;
+        }
+        
+        td:nth-child(2), th:nth-child(2) { /* PNR */
+            width: 80px;
+            min-width: 80px;
+        }
+        
+        td:nth-child(3), th:nth-child(3) { /* Passenger Name */
+            width: 120px;
+            min-width: 120px;
+        }
+        
+        td:nth-child(4), th:nth-child(4), /* Travel Date */
+        td:nth-child(5), th:nth-child(5), /* Inbound Date */
+        td:nth-child(6), th:nth-child(6), /* Expiry */
+        td:nth-child(13), th:nth-child(13) { /* Refund Apply Date */
+            width: 90px;
+            min-width: 90px;
+        }
+        
+        td:nth-child(9), th:nth-child(9) { /* Ticket No */
+            width: 100px;
+            min-width: 100px;
+        }
+        
+        td:nth-child(14), th:nth-child(14), /* Vendor Amount */
+        td:nth-child(15), th:nth-child(15), /* Return to Client */
+        td:nth-child(16), th:nth-child(16) { /* Earning */
+            width: 80px;
+            min-width: 80px;
+            text-align: right;
+        }
+        
+        td:nth-child(19), th:nth-child(19) { /* Actions */
+            width: 80px;
+            min-width: 80px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1400px) {
+            table {
+                font-size: 11px;
+            }
+            
+            th, td {
+                padding: 6px 4px;
+            }
+            
+            .btn-small {
+                font-size: 10px;
+                padding: 2px 4px;
+            }
+        }
+        
+        /* Hover effects */
+        tbody tr:hover {
+            background-color: #f7fafc;
+        }
+        
+        /* Notification styling */
+        .notification {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            padding: 12px 18px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            font-size: 13px;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
         }
     </style>
 </head>
@@ -125,19 +290,19 @@
             <div class="dashboard-logo-section">
                 <img src="images/QFClogo.png" alt="QFC Logo" class="dashboard-logo">
                 <div class="dashboard-title">
-                    <h1>📊 Refund Dashboard</h1>
-                    <p>Monitor, track, and manage refund tickets</p>
+                    <h1 style="font-size: 20px; margin-bottom: 5px;">📊 Refund Dashboard</h1>
+                    <p style="font-size: 12px; color: #666;">Monitor, track, and manage refund tickets</p>
                 </div>
             </div>
             <div class="dashboard-actions">
                 <a href="index.html" class="btn btn-add-ticket">
-                    ➕ Add Ticket
+                    ➕ Add
                 </a>
                 <button onclick="loadTickets()" class="refresh-btn">
                     🔄 Refresh
                 </button>
                 <button onclick="exportToExcel()" class="btn btn-export">
-                    📤 Export Excel
+                    📤 Export
                 </button>
             </div>
         </div>
@@ -145,15 +310,15 @@
         <div class="stats">
             <div class="stat-card">
                 <div class="stat-value" id="totalTickets">0</div>
-                <div>Total Tickets</div>
+                <div style="font-size: 12px;">Total Tickets</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="expiringCount">0</div>
-                <div>Expiring Soon</div>
+                <div style="font-size: 12px;">Expiring Soon</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="totalAmount">0</div>
-                <div>Total Amount</div>
+                <div style="font-size: 12px;">Total Amount</div>
             </div>
         </div>
         
@@ -161,21 +326,21 @@
             <table id="ticketsTable">
                 <thead>
                     <tr>
-                        <th>SR NO</th>
+                        <th>SR</th>
                         <th>PNR</th>
-                        <th>Passenger Name</th>
-                        <th>Travel Date</th>
-                        <th>Inbound Date</th>
+                        <th>Passenger</th>
+                        <th>Travel</th>
+                        <th>Inbound</th>
                         <th>Expiry</th>
-                        <th>Full/Half Refund</th>
+                        <th>Refund Type</th>
                         <th>Sector</th>
                         <th>Ticket No</th>
                         <th>Airline</th>
-                        <th>Agent Name</th>
+                        <th>Agent</th>
                         <th>Vendor</th>
-                        <th>Refund Apply Date</th>
-                        <th>Vendor Amount</th>
-                        <th>Return to Client</th>
+                        <th>Apply Date</th>
+                        <th>Vendor Amt</th>
+                        <th>To Client</th>
                         <th>Earning</th>
                         <th>Remarks</th>
                         <th>Status</th>
@@ -185,7 +350,7 @@
                 <tbody id="ticketsBody">
                     <tr id="loadingRow">
                         <td colspan="19" class="loading">
-                            Connecting to Supabase and loading tickets...
+                            Loading tickets from Supabase...
                         </td>
                     </tr>
                 </tbody>
@@ -223,7 +388,7 @@
                 // Show loading state
                 const loadingRow = document.getElementById('loadingRow');
                 if (loadingRow) {
-                    loadingRow.innerHTML = '<td colspan="19" class="loading">🔄 Loading tickets from Supabase...</td>';
+                    loadingRow.innerHTML = '<td colspan="19" class="loading">🔄 Loading tickets...</td>';
                 }
                 
                 // Check if supabaseClient is available
@@ -235,7 +400,7 @@
                 const { data, error } = await supabaseClient
                     .from(TABLE_NAME)
                     .select('*')
-                    .order('sr_no', { ascending: true }); // Order by SR NO
+                    .order('sr_no', { ascending: true });
                 
                 if (error) {
                     console.error('Supabase error:', error);
@@ -258,12 +423,12 @@
                         expiryDate: ticket.expiry_date || '',
                         refundType: ticket.refund_type || '',
                         sector: ticket.sector || '',
-                        ticketNumber: ticket.ticket_no || '', // FIXED: Use actual ticket number from form
+                        ticketNumber: ticket.ticket_no || '',
                         airline: ticket.airline || '',
                         agentName: ticket.agent_name || '',
                         vendor: ticket.vendor || '',
                         refundApplyDate: ticket.refund_apply_date || '',
-                        vendorAmount: ticket.ven_amount || '0', // FIXED: Use vendor_amount from database
+                        vendorAmount: ticket.ven_amount || '0',
                         revToClient: ticket.rev_to_client || '0',
                         earning: ticket.earning || '0',
                         remarks: ticket.remarks || '',
@@ -277,7 +442,7 @@
                 populateTable();
                 
                 // Show success notification
-                showNotification(`Loaded ${refundTickets.length} tickets from Supabase`, 'success');
+                showNotification(`Loaded ${refundTickets.length} tickets`, 'success');
                 
             } catch (error) {
                 console.error('Error loading tickets from Supabase:', error);
@@ -288,15 +453,14 @@
                     tableBody.innerHTML = `
                         <tr>
                             <td colspan="19" class="error">
-                                ❌ Error loading tickets: ${error.message}<br>
-                                Check browser console for details.
+                                ❌ Error: ${error.message}
                             </td>
                         </tr>
                     `;
                 }
                 
                 // Show error notification
-                showNotification('Failed to load tickets from Supabase', 'error');
+                showNotification('Failed to load tickets', 'error');
                 
                 // Update stats to show error
                 document.getElementById('totalTickets').textContent = 'Error';
@@ -330,7 +494,6 @@
                 const date = new Date(dateString);
                 if (isNaN(date.getTime())) return dateString;
                 return date.toLocaleDateString('en-US', {
-                    year: 'numeric',
                     month: 'short',
                     day: 'numeric'
                 });
@@ -340,118 +503,124 @@
         }
         
         // Function to populate the table
-        // Function to populate the table
-function populateTable() {
-    const tableBody = document.getElementById('ticketsBody');
-    const loadingRow = document.getElementById('loadingRow');
-    
-    // Remove loading row if it exists
-    if (loadingRow && loadingRow.parentNode) {
-        loadingRow.remove();
-    }
-    
-    if (!refundTickets || refundTickets.length === 0) {
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="19" class="loading">
-                    📭 No tickets found in Supabase.<br>
-                    Click "Add Ticket" to create your first refund ticket.
-                </td>
-            </tr>
-        `;
-        
-        // Update statistics
-        updateStatistics();
-        return;
-    }
-    
-    tableBody.innerHTML = '';
-    
-    let totalAmount = 0;
-    let expiringCount = 0;
-    
-    refundTickets.forEach((ticket, index) => {
-        const row = document.createElement('tr');
-        
-        // Helper function to safely convert to string
-        function safeToString(value) {
-            if (value === null || value === undefined) return '0';
-            if (typeof value === 'string') return value;
-            return String(value);
+        function populateTable() {
+            const tableBody = document.getElementById('ticketsBody');
+            const loadingRow = document.getElementById('loadingRow');
+            
+            // Remove loading row if it exists
+            if (loadingRow && loadingRow.parentNode) {
+                loadingRow.remove();
+            }
+            
+            if (!refundTickets || refundTickets.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="19" class="loading">
+                            📭 No tickets found.
+                        </td>
+                    </tr>
+                `;
+                
+                // Update statistics
+                updateStatistics();
+                return;
+            }
+            
+            tableBody.innerHTML = '';
+            
+            let totalAmount = 0;
+            let expiringCount = 0;
+            
+            refundTickets.forEach((ticket, index) => {
+                const row = document.createElement('tr');
+                
+                // Helper function to safely convert to string
+                function safeToString(value) {
+                    if (value === null || value === undefined) return '0';
+                    if (typeof value === 'string') return value;
+                    return String(value);
+                }
+                
+                // Helper function to safely parse float
+                function safeParseFloat(value) {
+                    const str = safeToString(value);
+                    const num = parseFloat(str.replace(/,/g, ''));
+                    return isNaN(num) ? 0 : num;
+                }
+                
+                // Calculate totals
+                const amount = safeParseFloat(ticket.vendorAmount);
+                totalAmount += amount;
+                
+                // Check expiry
+                let expiryClass = '';
+                let expiryDisplay = formatDate(ticket.expiryDate);
+                
+                if (ticket.expiryDate && isExpired(ticket.expiryDate)) {
+                    expiryClass = 'expiring';
+                    expiryDisplay = '⚠️ ' + expiryDisplay;
+                } else if (ticket.expiryDate && isExpiringSoon(ticket.expiryDate)) {
+                    expiryClass = 'expiring';
+                    expiryDisplay = '⏰ ' + expiryDisplay;
+                    expiringCount++;
+                }
+                
+                // Status badge
+                let statusClass = '';
+                let statusText = ticket.status || 'PENDING';
+                
+                if (statusText === 'PENDING') {
+                    statusClass = 'status-pending';
+                } else if (statusText === 'REFUNDED') {
+                    statusClass = 'status-refunded';
+                } else if (statusText === 'PROCESSING') {
+                    statusClass = 'status-processing';
+                }
+                
+                // Shorten long text
+                const shortPassenger = ticket.passengerName.length > 15 ? 
+                    ticket.passengerName.substring(0, 15) + '...' : ticket.passengerName;
+                const shortRemarks = ticket.remarks.length > 10 ? 
+                    ticket.remarks.substring(0, 10) + '...' : ticket.remarks;
+                const shortSector = ticket.sector.length > 10 ? 
+                    ticket.sector.substring(0, 10) + '...' : ticket.sector;
+                
+                // Generate table row with ALL fields
+                row.innerHTML = `
+                    <td>${ticket.srNo || ''}</td>
+                    <td><strong>${ticket.pnr || ''}</strong></td>
+                    <td title="${ticket.passengerName || ''}">${shortPassenger}</td>
+                    <td>${formatDate(ticket.travelDate)}</td>
+                    <td>${formatDate(ticket.inboundDate)}</td>
+                    <td class="${expiryClass}">${expiryDisplay}</td>
+                    <td>${ticket.refundType || ''}</td>
+                    <td title="${ticket.sector || ''}">${shortSector}</td>
+                    <td><strong>${ticket.ticketNumber || ''}</strong></td>
+                    <td>${ticket.airline || ''}</td>
+                    <td>${ticket.agentName || ''}</td>
+                    <td>${ticket.vendor || ''}</td>
+                    <td>${formatDate(ticket.refundApplyDate)}</td>
+                    <td style="text-align: right;">${safeToString(ticket.vendorAmount)}</td>
+                    <td style="text-align: right;">${safeToString(ticket.revToClient)}</td>
+                    <td style="text-align: right;">${safeToString(ticket.earning)}</td>
+                    <td title="${ticket.remarks || ''}">${shortRemarks}</td>
+                    <td><span class="${statusClass}">${statusText}</span></td>
+                    <td>
+                        <button onclick="editTicket('${ticket.id}')" class="btn-small btn-edit">
+                            Edit
+                        </button>
+                        <button onclick="deleteTicket('${ticket.id}')" class="btn-small btn-delete">
+                            Del
+                        </button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Update statistics
+            updateStatistics(totalAmount, expiringCount);
         }
-        
-        // Helper function to safely parse float
-        function safeParseFloat(value) {
-            const str = safeToString(value);
-            const num = parseFloat(str.replace(/,/g, ''));
-            return isNaN(num) ? 0 : num;
-        }
-        
-        // Calculate totals
-        const amount = safeParseFloat(ticket.vendorAmount);
-        totalAmount += amount;
-        
-        // Check expiry
-        let expiryClass = '';
-        let expiryDisplay = formatDate(ticket.expiryDate);
-        
-        if (ticket.expiryDate && isExpired(ticket.expiryDate)) {
-            expiryClass = 'expiring';
-            expiryDisplay = '⚠️ ' + expiryDisplay + ' (Expired)';
-        } else if (ticket.expiryDate && isExpiringSoon(ticket.expiryDate)) {
-            expiryClass = 'expiring';
-            expiryDisplay = '⏰ ' + expiryDisplay + ' (Soon)';
-            expiringCount++;
-        }
-        
-        // Status badge
-        let statusClass = '';
-        let statusText = ticket.status || 'PENDING';
-        
-        if (statusText === 'PENDING') {
-            statusClass = 'status-pending';
-        } else if (statusText === 'REFUNDED') {
-            statusClass = 'status-refunded';
-        } else if (statusText === 'PROCESSING') {
-            statusClass = 'status-processing';
-        }
-        
-        // Generate table row with ALL fields
-        row.innerHTML = `
-            <td>${ticket.srNo || 'N/A'}</td>
-            <td>${ticket.pnr || 'N/A'}</td>
-            <td>${ticket.passengerName || 'N/A'}</td>
-            <td>${formatDate(ticket.travelDate)}</td>
-            <td>${formatDate(ticket.inboundDate)}</td>
-            <td class="${expiryClass}">${expiryDisplay}</td>
-            <td>${ticket.refundType || 'N/A'}</td>
-            <td>${ticket.sector || 'N/A'}</td>
-            <td><strong>${ticket.ticketNumber || 'N/A'}</strong></td>
-            <td>${ticket.airline || 'N/A'}</td>
-            <td>${ticket.agentName || 'N/A'}</td>
-            <td>${ticket.vendor || 'N/A'}</td>
-            <td>${formatDate(ticket.refundApplyDate)}</td>
-            <td>${safeToString(ticket.vendorAmount)}</td>
-            <td>${safeToString(ticket.revToClient)}</td>
-            <td>${safeToString(ticket.earning)}</td>
-            <td>${ticket.remarks || 'N/A'}</td>
-            <td><span class="${statusClass}">${statusText}</span></td>
-            <td>
-                <button onclick="editTicket('${ticket.id}')" class="btn-small btn-edit">
-                    Edit
-                </button>
-                <button onclick="deleteTicket('${ticket.id}')" class="btn-small btn-delete">
-                    Delete
-                </button>
-            </td>
-        `;
-        
-        tableBody.appendChild(row);
-    });
-    
-    // Update statistics
-    updateStatistics(totalAmount, expiringCount);
-}
         
         // Function to update statistics
         function updateStatistics(totalAmount = 0, expiringCount = 0) {
@@ -476,15 +645,15 @@ function populateTable() {
                 
                 // Reload tickets after deletion
                 await loadTickets();
-                showNotification('Ticket deleted successfully!', 'success');
+                showNotification('Ticket deleted!', 'success');
                 
             } catch (error) {
                 console.error('Error deleting ticket:', error);
-                showNotification('Failed to delete ticket', 'error');
+                showNotification('Failed to delete', 'error');
             }
         }
         
-        // Function to edit a ticket - FIXED
+        // Function to edit a ticket
         async function editTicket(ticketId) {
             const ticket = refundTickets.find(t => t.id === ticketId);
             if (!ticket) {
@@ -492,50 +661,25 @@ function populateTable() {
                 return;
             }
             
-            // Create edit form
-            const statusOptions = ['PENDING', 'PROCESSING', 'REFUNDED'];
-            let formHtml = '<div style="text-align: left; padding: 10px;">';
+            // Helper function to safely convert to string
+            function safeToString(value) {
+                if (value === null || value === undefined) return '0';
+                if (typeof value === 'string') return value;
+                return String(value);
+            }
             
-            // Add all fields for editing
-            formHtml += `<strong>Edit Ticket #${ticket.srNo}</strong><br><br>`;
-            
-            // Status field
-            formHtml += `<label>Status:</label><br>`;
-            formHtml += `<select id="editStatus" style="width: 100%; padding: 8px; margin-bottom: 10px;">`;
-            statusOptions.forEach(option => {
-                formHtml += `<option value="${option}" ${ticket.status === option ? 'selected' : ''}>${option}</option>`;
-            });
-            formHtml += `</select><br>`;
-            
-            // Vendor Amount field
-            formHtml += `<label>Vendor Amount:</label><br>`;
-            formHtml += `<input type="text" id="editVendorAmount" value="${ticket.vendorAmount || '0'}" style="width: 100%; padding: 8px; margin-bottom: 10px;"><br>`;
-            
-            // Remarks field
-            formHtml += `<label>Remarks:</label><br>`;
-            formHtml += `<input type="text" id="editRemarks" value="${ticket.remarks || ''}" style="width: 100%; padding: 8px; margin-bottom: 10px;"><br>`;
-            
-            formHtml += '</div>';
-            
-            // Show modal
-            const userConfirmed = confirm(`Edit Ticket #${ticket.srNo}\n\nCurrent Status: ${ticket.status}\nVendor Amount: ${ticket.vendorAmount}\n\nClick OK to edit, Cancel to abort.`);
-            
-            if (!userConfirmed) return;
-            
-            // Get new values
-            const newStatus = prompt('Enter new status (PENDING, PROCESSING, REFUNDED):', ticket.status);
+            const newStatus = prompt('Enter status (PENDING, PROCESSING, REFUNDED):', ticket.status);
             if (!newStatus) return;
             
-            const vendorAmountDisplay = String(ticket.vendorAmount || '0');
-            const newVendorAmount = prompt('Enter new vendor amount:', vendorAmountDisplay);
+            const newVendorAmount = prompt('Enter vendor amount:', safeToString(ticket.vendorAmount));
             if (newVendorAmount === null) return;
             
-            const newRemarks = prompt('Enter new remarks:', ticket.remarks || '');
+            const newRemarks = prompt('Enter remarks:', ticket.remarks || '');
             
             try {
                 const updateData = {
                     status: newStatus.toUpperCase(),
-                    vendor_amount: newVendorAmount
+                    ven_amount: newVendorAmount
                 };
                 
                 if (newRemarks !== null) {
@@ -551,11 +695,11 @@ function populateTable() {
                 
                 // Reload tickets after update
                 await loadTickets();
-                showNotification('Ticket updated successfully!', 'success');
+                showNotification('Ticket updated!', 'success');
                 
             } catch (error) {
                 console.error('Error updating ticket:', error);
-                showNotification('Failed to update ticket', 'error');
+                showNotification('Failed to update', 'error');
             }
         }
         
@@ -569,7 +713,7 @@ function populateTable() {
             let csv = [];
             const headers = [
                 "SR NO", "PNR", "Passenger Name", "Travel Date", "Inbound Date", 
-                "Expiry Date", "Full/Half Refund", "Sector", "Ticket Number", 
+                "Expiry Date", "Refund Type", "Sector", "Ticket Number", 
                 "Airline", "Agent Name", "Vendor", "Refund Apply Date", 
                 "Vendor Amount", "Return to Client", "Earning", "Remarks", "Status"
             ];
@@ -590,9 +734,9 @@ function populateTable() {
                     ticket.agentName || '',
                     ticket.vendor || '',
                     ticket.refundApplyDate || '',
-                    (ticket.vendorAmount || '0').replace(/,/g, ''),
-                    (ticket.revToClient || '0').replace(/,/g, ''),
-                    (ticket.earning || '0').replace(/,/g, ''),
+                    (safeToString(ticket.vendorAmount)).replace(/,/g, ''),
+                    (safeToString(ticket.revToClient)).replace(/,/g, ''),
+                    (safeToString(ticket.earning)).replace(/,/g, ''),
                     `"${ticket.remarks || ''}"`,
                     ticket.status || ''
                 ];
@@ -612,7 +756,7 @@ function populateTable() {
             link.click();
             document.body.removeChild(link);
             
-            showNotification('Data exported successfully!', 'success');
+            showNotification('Data exported!', 'success');
         }
         
         // Function to show notification
@@ -622,16 +766,17 @@ function populateTable() {
             notification.textContent = message;
             notification.style.cssText = `
                 position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 20px;
+                top: 15px;
+                right: 15px;
+                padding: 12px 18px;
                 background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#667eea'};
                 color: white;
-                border-radius: 10px;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                border-radius: 6px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                 z-index: 1000;
                 animation: slideIn 0.3s ease;
                 font-weight: 500;
+                font-size: 13px;
             `;
             
             document.body.appendChild(notification);
@@ -646,68 +791,9 @@ function populateTable() {
             }, 3000);
         }
         
-        // Add CSS for status badges and animations
-        const style = document.createElement('style');
-        style.textContent = `
-            .status-pending {
-                background: #fef3c7;
-                color: #d97706;
-                padding: 6px 12px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 600;
-                display: inline-block;
-            }
-            
-            .status-refunded {
-                background: #d1fae5;
-                color: #065f46;
-                padding: 6px 12px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 600;
-                display: inline-block;
-            }
-            
-            .status-processing {
-                background: #dbeafe;
-                color: #1e40af;
-                padding: 6px 12px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 600;
-                display: inline-block;
-            }
-            
-            @keyframes slideIn {
-                from {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-            
-            @keyframes slideOut {
-                from {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-                to {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-        
         // Initialize dashboard when page loads
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Dashboard initializing...');
-            console.log('Supabase URL:', SUPABASE_URL);
-            console.log('Table name:', TABLE_NAME);
             
             // Load tickets immediately
             loadTickets();
