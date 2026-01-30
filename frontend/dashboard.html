@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Refund Dashboard</title>
-    <!-- Include Supabase JS Client - ONLY ONCE -->
+    <!-- Include Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/style.css">
     <style>
@@ -45,11 +45,13 @@
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #ddd;
+            font-size: 14px;
         }
         
         th {
             background: #f8f9fa;
             font-weight: bold;
+            white-space: nowrap;
         }
         
         .expiring {
@@ -68,7 +70,7 @@
         
         .loading {
             text-align: center;
-            padding: 20px;
+            padding: 40px;
             color: #667eea;
             font-style: italic;
         }
@@ -76,7 +78,7 @@
         .error {
             color: #ff6b6b;
             text-align: center;
-            padding: 20px;
+            padding: 40px;
         }
         
         .refresh-btn {
@@ -89,6 +91,31 @@
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+        
+        /* Scrollable table */
+        .table-container {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        
+        .btn-small {
+            font-size: 12px;
+            padding: 4px 8px;
+            margin: 2px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .btn-edit {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-delete {
+            background: #ef4444;
+            color: white;
         }
     </style>
 </head>
@@ -130,25 +157,34 @@
             </div>
         </div>
         
-        <div id="tableContainer">
+        <div class="table-container">
             <table id="ticketsTable">
                 <thead>
                     <tr>
                         <th>SR NO</th>
-                        <th>Ticket Number</th>
                         <th>PNR</th>
                         <th>Passenger Name</th>
                         <th>Travel Date</th>
-                        <th>Expiry Date</th>
+                        <th>Inbound Date</th>
+                        <th>Expiry</th>
+                        <th>Full/Half Refund</th>
+                        <th>Sector</th>
+                        <th>Ticket No</th>
+                        <th>Airline</th>
+                        <th>Agent Name</th>
                         <th>Vendor</th>
+                        <th>Refund Apply Date</th>
                         <th>Vendor Amount</th>
+                        <th>Return to Client</th>
+                        <th>Earning</th>
+                        <th>Remarks</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="ticketsBody">
                     <tr id="loadingRow">
-                        <td colspan="10" class="loading">
+                        <td colspan="19" class="loading">
                             Connecting to Supabase and loading tickets...
                         </td>
                     </tr>
@@ -159,24 +195,19 @@
     
     <script>
         // ================= SUPABASE CONFIGURATION =================
-        // IMPORTANT: Replace these with your actual Supabase credentials
-        // You can find these in your Supabase project settings > API
         const SUPABASE_URL = 'https://lnvutfwzbsjvagipqgqb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxudnV0Znd6YnNqdmFnaXBxZ3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MDc3NTAsImV4cCI6MjA4NTI4Mzc1MH0.IF-4A234--HqN3RGhruMjwmvVUxCnX80YuAcLK2i4zs';
         
-        // CHECK if supabase is already initialized
+        // Initialize Supabase client
         let supabaseClient;
         if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-            // Supabase is already loaded, just create client
             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             console.log('Supabase client created successfully');
         } else {
             console.error('Supabase library not loaded properly');
-            // Show error to user
-            document.getElementById('loadingRow').innerHTML = '<td colspan="10" class="error">Error: Supabase library failed to load. Please refresh the page.</td>';
         }
         
-        // Table name in Supabase (make sure this matches your table name)
+        // Table name
         const TABLE_NAME = 'tickets';
         
         // ================= VARIABLES =================
@@ -192,7 +223,7 @@
                 // Show loading state
                 const loadingRow = document.getElementById('loadingRow');
                 if (loadingRow) {
-                    loadingRow.innerHTML = '<td colspan="10" class="loading">🔄 Loading tickets from Supabase...</td>';
+                    loadingRow.innerHTML = '<td colspan="19" class="loading">🔄 Loading tickets from Supabase...</td>';
                 }
                 
                 // Check if supabaseClient is available
@@ -204,7 +235,7 @@
                 const { data, error } = await supabaseClient
                     .from(TABLE_NAME)
                     .select('*')
-                    .order('created_at', { ascending: false }); // Show newest first
+                    .order('sr_no', { ascending: true }); // Order by SR NO
                 
                 if (error) {
                     console.error('Supabase error:', error);
@@ -217,18 +248,26 @@
                     console.log('No tickets found in Supabase');
                     refundTickets = [];
                 } else {
-                    // Transform Supabase data to match our format
-                    refundTickets = data.map((ticket, index) => ({
-                        srNo: index + 1,
-                        ticketNumber: ticket.ticket_number || ticket.ticketNumber || `TKT-${ticket.id}`,
+                    refundTickets = data.map(ticket => ({
+                        id: ticket.id,
+                        srNo: ticket.sr_no,
                         pnr: ticket.pnr || '',
-                        passengerName: ticket.passenger_name || ticket.passengerName || '',
-                        travelDate: ticket.travel_date || ticket.travelDate || '',
-                        expiryDate: ticket.expiry_date || ticket.expiryDate || '',
+                        passengerName: ticket.passenger_name || '',
+                        travelDate: ticket.travel_date || '',
+                        inboundDate: ticket.inbound_date || '',
+                        expiryDate: ticket.expiry_date || '',
+                        refundType: ticket.refund_type || '',
+                        sector: ticket.sector || '',
+                        ticketNumber: ticket.ticket_number || '', // FIXED: Use actual ticket number from form
+                        airline: ticket.airline || '',
+                        agentName: ticket.agent_name || '',
                         vendor: ticket.vendor || '',
-                        vendorAmount: ticket.vendor_amount || ticket.vendorAmount || '0',
-                        status: ticket.status || 'PENDING',
-                        id: ticket.id // Keep the Supabase ID for updates/deletes
+                        refundApplyDate: ticket.refund_apply_date || '',
+                        vendorAmount: ticket.vendor_amount || '0', // FIXED: Use vendor_amount from database
+                        revToClient: ticket.rev_to_client || '0',
+                        earning: ticket.earning || '0',
+                        remarks: ticket.remarks || '',
+                        status: ticket.status || 'PENDING'
                     }));
                     
                     console.log('Transformed tickets:', refundTickets);
@@ -248,7 +287,7 @@
                 if (tableBody) {
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="10" class="error">
+                            <td colspan="19" class="error">
                                 ❌ Error loading tickets: ${error.message}<br>
                                 Check browser console for details.
                             </td>
@@ -266,7 +305,6 @@
             }
         }
         
-        // Rest of your functions remain EXACTLY THE SAME...
         // Function to check if a ticket is expiring soon (within 3 days)
         function isExpiringSoon(expiryDate) {
             if (!expiryDate) return false;
@@ -314,7 +352,7 @@
             if (!refundTickets || refundTickets.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="10" class="loading">
+                        <td colspan="19" class="loading">
                             📭 No tickets found in Supabase.<br>
                             Click "Add Ticket" to create your first refund ticket.
                         </td>
@@ -328,11 +366,15 @@
             
             tableBody.innerHTML = '';
             
+            let totalAmount = 0;
+            let expiringCount = 0;
+            
             refundTickets.forEach((ticket, index) => {
                 const row = document.createElement('tr');
                 
-                // Update serial number
-                ticket.srNo = index + 1;
+                // Calculate totals
+                const amount = parseFloat(ticket.vendorAmount?.replace(/,/g, '') || '0') || 0;
+                totalAmount += amount;
                 
                 // Check expiry
                 let expiryClass = '';
@@ -344,6 +386,7 @@
                 } else if (ticket.expiryDate && isExpiringSoon(ticket.expiryDate)) {
                     expiryClass = 'expiring';
                     expiryDisplay = '⏰ ' + expiryDisplay + ' (Soon)';
+                    expiringCount++;
                 }
                 
                 // Status badge
@@ -358,23 +401,31 @@
                     statusClass = 'status-processing';
                 }
                 
-                // Generate table row with all data
-                // NO INDIAN RUPEE SYMBOL - using plain numbers
+                // Generate table row with ALL fields
                 row.innerHTML = `
-                    <td>${ticket.srNo}</td>
-                    <td><strong>${ticket.ticketNumber || 'N/A'}</strong></td>
+                    <td>${ticket.srNo || 'N/A'}</td>
                     <td>${ticket.pnr || 'N/A'}</td>
                     <td>${ticket.passengerName || 'N/A'}</td>
                     <td>${formatDate(ticket.travelDate)}</td>
+                    <td>${formatDate(ticket.inboundDate)}</td>
                     <td class="${expiryClass}">${expiryDisplay}</td>
+                    <td>${ticket.refundType || 'N/A'}</td>
+                    <td>${ticket.sector || 'N/A'}</td>
+                    <td><strong>${ticket.ticketNumber || 'N/A'}</strong></td>
+                    <td>${ticket.airline || 'N/A'}</td>
+                    <td>${ticket.agentName || 'N/A'}</td>
                     <td>${ticket.vendor || 'N/A'}</td>
+                    <td>${formatDate(ticket.refundApplyDate)}</td>
                     <td>${ticket.vendorAmount || '0'}</td>
+                    <td>${ticket.revToClient || '0'}</td>
+                    <td>${ticket.earning || '0'}</td>
+                    <td>${ticket.remarks || 'N/A'}</td>
                     <td><span class="${statusClass}">${statusText}</span></td>
                     <td>
-                        <button onclick="editTicket('${ticket.id}')" class="btn-small" style="background: #3b82f6; color: white; padding: 4px 8px; border-radius: 4px; border: none; cursor: pointer; margin-right: 5px;">
+                        <button onclick="editTicket('${ticket.id}')" class="btn-small btn-edit">
                             Edit
                         </button>
-                        <button onclick="deleteTicket('${ticket.id}')" class="btn-small" style="background: #ef4444; color: white; padding: 4px 8px; border-radius: 4px; border: none; cursor: pointer;">
+                        <button onclick="deleteTicket('${ticket.id}')" class="btn-small btn-delete">
                             Delete
                         </button>
                     </td>
@@ -384,29 +435,12 @@
             });
             
             // Update statistics
-            updateStatistics();
+            updateStatistics(totalAmount, expiringCount);
         }
         
         // Function to update statistics
-        function updateStatistics() {
-            if (!refundTickets || refundTickets.length === 0) {
-                document.getElementById('totalTickets').textContent = '0';
-                document.getElementById('expiringCount').textContent = '0';
-                document.getElementById('totalAmount').textContent = '0';
-                return;
-            }
-            
-            const totalTickets = refundTickets.length;
-            const expiringCount = refundTickets.filter(ticket => 
-                ticket.expiryDate && isExpiringSoon(ticket.expiryDate)
-            ).length;
-            
-            const totalAmount = refundTickets.reduce((sum, ticket) => {
-                const amount = parseInt(ticket.vendorAmount?.replace(/,/g, '') || '0') || 0;
-                return sum + amount;
-            }, 0);
-            
-            document.getElementById('totalTickets').textContent = totalTickets;
+        function updateStatistics(totalAmount = 0, expiringCount = 0) {
+            document.getElementById('totalTickets').textContent = refundTickets.length;
             document.getElementById('expiringCount').textContent = expiringCount;
             document.getElementById('totalAmount').textContent = totalAmount.toLocaleString();
         }
@@ -435,31 +469,77 @@
             }
         }
         
-        // Function to edit a ticket
+        // Function to edit a ticket - FIXED
         async function editTicket(ticketId) {
             const ticket = refundTickets.find(t => t.id === ticketId);
-            if (!ticket) return;
+            if (!ticket) {
+                showNotification('Ticket not found', 'error');
+                return;
+            }
             
-            const newStatus = prompt('Update Ticket Status (PENDING, PROCESSING, REFUNDED):', ticket.status);
-            if (newStatus && ['PENDING', 'PROCESSING', 'REFUNDED'].includes(newStatus.toUpperCase())) {
-                try {
-                    const { error } = await supabaseClient
-                        .from(TABLE_NAME)
-                        .update({ status: newStatus.toUpperCase() })
-                        .eq('id', ticketId);
-                    
-                    if (error) throw error;
-                    
-                    // Reload tickets after update
-                    await loadTickets();
-                    showNotification('Ticket status updated!', 'success');
-                    
-                } catch (error) {
-                    console.error('Error updating ticket:', error);
-                    showNotification('Failed to update ticket', 'error');
+            // Create edit form
+            const statusOptions = ['PENDING', 'PROCESSING', 'REFUNDED'];
+            let formHtml = '<div style="text-align: left; padding: 10px;">';
+            
+            // Add all fields for editing
+            formHtml += `<strong>Edit Ticket #${ticket.srNo}</strong><br><br>`;
+            
+            // Status field
+            formHtml += `<label>Status:</label><br>`;
+            formHtml += `<select id="editStatus" style="width: 100%; padding: 8px; margin-bottom: 10px;">`;
+            statusOptions.forEach(option => {
+                formHtml += `<option value="${option}" ${ticket.status === option ? 'selected' : ''}>${option}</option>`;
+            });
+            formHtml += `</select><br>`;
+            
+            // Vendor Amount field
+            formHtml += `<label>Vendor Amount:</label><br>`;
+            formHtml += `<input type="text" id="editVendorAmount" value="${ticket.vendorAmount || '0'}" style="width: 100%; padding: 8px; margin-bottom: 10px;"><br>`;
+            
+            // Remarks field
+            formHtml += `<label>Remarks:</label><br>`;
+            formHtml += `<input type="text" id="editRemarks" value="${ticket.remarks || ''}" style="width: 100%; padding: 8px; margin-bottom: 10px;"><br>`;
+            
+            formHtml += '</div>';
+            
+            // Show modal
+            const userConfirmed = confirm(`Edit Ticket #${ticket.srNo}\n\nCurrent Status: ${ticket.status}\nVendor Amount: ${ticket.vendorAmount}\n\nClick OK to edit, Cancel to abort.`);
+            
+            if (!userConfirmed) return;
+            
+            // Get new values
+            const newStatus = prompt('Enter new status (PENDING, PROCESSING, REFUNDED):', ticket.status);
+            if (!newStatus) return;
+            
+            const newVendorAmount = prompt('Enter new vendor amount:', ticket.vendorAmount || '0');
+            if (newVendorAmount === null) return;
+            
+            const newRemarks = prompt('Enter new remarks:', ticket.remarks || '');
+            
+            try {
+                const updateData = {
+                    status: newStatus.toUpperCase(),
+                    vendor_amount: newVendorAmount
+                };
+                
+                if (newRemarks !== null) {
+                    updateData.remarks = newRemarks;
                 }
-            } else if (newStatus) {
-                showNotification('Invalid status. Use: PENDING, PROCESSING, or REFUNDED', 'error');
+                
+                const { error } = await supabaseClient
+                    .from(TABLE_NAME)
+                    .update(updateData)
+                    .eq('id', ticketId);
+                
+                if (error) throw error;
+                
+                // Reload tickets after update
+                await loadTickets();
+                showNotification('Ticket updated successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error updating ticket:', error);
+                showNotification('Failed to update ticket', 'error');
             }
         }
         
@@ -471,19 +551,33 @@
             }
             
             let csv = [];
-            const headers = ["SR NO", "Ticket Number", "PNR", "Passenger Name", "Travel Date", "Expiry Date", "Vendor", "Vendor Amount", "Status"];
+            const headers = [
+                "SR NO", "PNR", "Passenger Name", "Travel Date", "Inbound Date", 
+                "Expiry Date", "Full/Half Refund", "Sector", "Ticket Number", 
+                "Airline", "Agent Name", "Vendor", "Refund Apply Date", 
+                "Vendor Amount", "Return to Client", "Earning", "Remarks", "Status"
+            ];
             csv.push(headers.join(","));
             
             refundTickets.forEach(ticket => {
                 const row = [
-                    ticket.srNo,
-                    ticket.ticketNumber || '',
+                    ticket.srNo || '',
                     ticket.pnr || '',
                     `"${ticket.passengerName || ''}"`,
                     ticket.travelDate || '',
+                    ticket.inboundDate || '',
                     ticket.expiryDate || '',
+                    ticket.refundType || '',
+                    ticket.sector || '',
+                    ticket.ticketNumber || '',
+                    ticket.airline || '',
+                    ticket.agentName || '',
                     ticket.vendor || '',
+                    ticket.refundApplyDate || '',
                     (ticket.vendorAmount || '0').replace(/,/g, ''),
+                    (ticket.revToClient || '0').replace(/,/g, ''),
+                    (ticket.earning || '0').replace(/,/g, ''),
+                    `"${ticket.remarks || ''}"`,
                     ticket.status || ''
                 ];
                 csv.push(row.join(","));
@@ -589,12 +683,6 @@
                     transform: translateX(100%);
                     opacity: 0;
                 }
-            }
-            
-            .btn-small {
-                font-size: 12px;
-                padding: 4px 8px;
-                margin: 2px;
             }
         `;
         document.head.appendChild(style);
