@@ -411,10 +411,10 @@
                 <a href="index.html" class="btn btn-add-ticket">
                     ➕ Add
                 </a>
-                <button onclick="loadTickets()" class="refresh-btn">
+                <button id="refreshButton" class="refresh-btn">
                     🔄 Refresh
                 </button>
-                <button onclick="exportToExcel()" class="btn btn-export">
+                <button id="exportButton" class="btn btn-export">
                     📤 Export
                 </button>
             </div>
@@ -709,10 +709,28 @@
                     const num = safeParseFloat(value);
                     if (num >= 1000000) return (num/1000000).toFixed(1) + 'M';
                     if (num >= 1000) return (num/1000).toFixed(1) + 'K';
-                    return num.toString();
+                    return num.toFixed(0);
                 };
                 
-                // Generate table row with ALL fields - SUPER COMPACT
+                // Create buttons with data attributes instead of onclick
+                const editButton = document.createElement('button');
+                editButton.className = 'btn-small btn-edit';
+                editButton.title = 'Edit';
+                editButton.textContent = 'E';
+                editButton.dataset.ticketId = ticket.id;
+                
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'btn-small btn-delete';
+                deleteButton.title = 'Delete';
+                deleteButton.textContent = 'D';
+                deleteButton.dataset.ticketId = ticket.id;
+                
+                // Create actions cell
+                const actionsCell = document.createElement('td');
+                actionsCell.appendChild(editButton);
+                actionsCell.appendChild(deleteButton);
+                
+                // Generate table row
                 row.innerHTML = `
                     <td>${ticket.srNo || ''}</td>
                     <td title="${ticket.pnr || ''}"><strong>${ticket.pnr || ''}</strong></td>
@@ -732,21 +750,40 @@
                     <td style="text-align: right;" title="${safeToString(ticket.earning)}">${formatAmount(ticket.earning)}</td>
                     <td title="${ticket.remarks || ''}">${shortRemarks}</td>
                     <td><span class="${statusClass}">${statusText.charAt(0)}</span></td>
-                    <td>
-                        <button onclick="editTicket('${ticket.id}')" class="btn-small btn-edit" title="Edit">
-                            E
-                        </button>
-                        <button onclick="deleteTicket('${ticket.id}')" class="btn-small btn-delete" title="Delete">
-                            D
-                        </button>
-                    </td>
                 `;
+                
+                // Append actions cell
+                row.appendChild(actionsCell);
                 
                 tableBody.appendChild(row);
             });
             
+            // Add event listeners to dynamically created buttons
+            addButtonEventListeners();
+            
             // Update statistics
             updateStatistics(totalAmount, expiringCount);
+        }
+        
+        // Function to add event listeners to buttons
+        function addButtonEventListeners() {
+            // Edit buttons
+            const editButtons = document.querySelectorAll('.btn-small.btn-edit');
+            editButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const ticketId = this.dataset.ticketId;
+                    editTicket(ticketId);
+                });
+            });
+            
+            // Delete buttons
+            const deleteButtons = document.querySelectorAll('.btn-small.btn-delete');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const ticketId = this.dataset.ticketId;
+                    deleteTicket(ticketId);
+                });
+            });
         }
         
         // Function to update statistics
@@ -788,99 +825,175 @@
                 return;
             }
             
-            const newStatus = prompt('Enter status (PENDING, PROCESSING, REFUNDED):', ticket.status);
-            if (!newStatus) return;
+            // Create a better edit interface
+            const editForm = `
+                <div style="padding: 20px; background: white; border-radius: 10px; max-width: 500px;">
+                    <h3 style="margin-bottom: 20px;">Edit Ticket #${ticket.srNo}</h3>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Status:</label>
+                        <select id="editStatus" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="PENDING" ${ticket.status === 'PENDING' ? 'selected' : ''}>PENDING</option>
+                            <option value="PROCESSING" ${ticket.status === 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
+                            <option value="REFUNDED" ${ticket.status === 'REFUNDED' ? 'selected' : ''}>REFUNDED</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Vendor Amount:</label>
+                        <input type="number" id="editVendorAmount" value="${ticket.vendorAmount}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Remarks:</label>
+                        <textarea id="editRemarks" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; height: 80px;">${ticket.remarks || ''}</textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button id="cancelEdit" style="padding: 8px 20px; background: #ccc; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
+                        <button id="saveEdit" style="padding: 8px 20px; background: #4f46e5; color: white; border: none; border-radius: 5px; cursor: pointer;">Save Changes</button>
+                    </div>
+                </div>
+            `;
             
-            const newVendorAmount = prompt('Enter vendor amount:', ticket.vendorAmount);
-            if (newVendorAmount === null) return;
+            // Create modal
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            `;
+            modal.innerHTML = editForm;
+            document.body.appendChild(modal);
             
-            const newRemarks = prompt('Enter remarks:', ticket.remarks || '');
+            // Add event listeners to modal buttons
+            document.getElementById('cancelEdit').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
             
-            try {
-                const updateData = {
-                    status: newStatus.toUpperCase(),
-                    ven_amount: newVendorAmount
-                };
+            document.getElementById('saveEdit').addEventListener('click', async () => {
+                const newStatus = document.getElementById('editStatus').value;
+                const newVendorAmount = document.getElementById('editVendorAmount').value;
+                const newRemarks = document.getElementById('editRemarks').value;
                 
-                if (newRemarks !== null) {
-                    updateData.remarks = newRemarks;
+                try {
+                    const updateData = {
+                        status: newStatus.toUpperCase(),
+                        ven_amount: parseFloat(newVendorAmount) || 0
+                    };
+                    
+                    if (newRemarks !== null && newRemarks !== undefined) {
+                        updateData.remarks = newRemarks;
+                    }
+                    
+                    const { error } = await supabaseClient
+                        .from(TABLE_NAME)
+                        .update(updateData)
+                        .eq('id', ticketId);
+                    
+                    if (error) throw error;
+                    
+                    // Remove modal
+                    document.body.removeChild(modal);
+                    
+                    // Reload tickets after update
+                    await loadTickets();
+                    showNotification('Ticket updated successfully!', 'success');
+                    
+                } catch (error) {
+                    console.error('Error updating ticket:', error);
+                    showNotification('Failed to update ticket', 'error');
                 }
-                
-                const { error } = await supabaseClient
-                    .from(TABLE_NAME)
-                    .update(updateData)
-                    .eq('id', ticketId);
-                
-                if (error) throw error;
-                
-                // Reload tickets after update
-                await loadTickets();
-                showNotification('Ticket updated!', 'success');
-                
-            } catch (error) {
-                console.error('Error updating ticket:', error);
-                showNotification('Failed to update', 'error');
-            }
+            });
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
         }
         
         // Function to export to Excel
-        function exportToExcel() {
+        async function exportToExcel() {
             if (!refundTickets || refundTickets.length === 0) {
                 showNotification('No data to export!', 'error');
                 return;
             }
             
-            let csv = [];
-            const headers = [
-                "SR NO", "PNR", "Passenger Name", "Travel Date", "Inbound Date", 
-                "Expiry Date", "Refund Type", "Sector", "Ticket Number", 
-                "Airline", "Agent Name", "Vendor", "Refund Apply Date", 
-                "Vendor Amount", "Return to Client", "Earning", "Remarks", "Status"
-            ];
-            csv.push(headers.join(","));
-            
-            refundTickets.forEach(ticket => {
-                const row = [
-                    ticket.srNo || '',
-                    ticket.pnr || '',
-                    `"${ticket.passengerName || ''}"`,
-                    ticket.travelDate || '',
-                    ticket.inboundDate || '',
-                    ticket.expiryDate || '',
-                    ticket.refundType || '',
-                    ticket.sector || '',
-                    ticket.ticketNumber || '',
-                    ticket.airline || '',
-                    ticket.agentName || '',
-                    ticket.vendor || '',
-                    ticket.refundApplyDate || '',
-                    (safeToString(ticket.vendorAmount)).replace(/,/g, ''),
-                    (safeToString(ticket.revToClient)).replace(/,/g, ''),
-                    (safeToString(ticket.earning)).replace(/,/g, ''),
-                    `"${ticket.remarks || ''}"`,
-                    ticket.status || ''
+            try {
+                // Show loading
+                showNotification('Preparing export...', 'info');
+                
+                // Create CSV content
+                let csv = [];
+                const headers = [
+                    "SR NO", "PNR", "Passenger Name", "Travel Date", "Inbound Date", 
+                    "Expiry Date", "Refund Type", "Sector", "Ticket Number", 
+                    "Airline", "Agent Name", "Vendor", "Refund Apply Date", 
+                    "Vendor Amount", "Return to Client", "Earning", "Remarks", "Status"
                 ];
-                csv.push(row.join(","));
-            });
-            
-            const csvString = csv.join("\n");
-            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            
-            link.setAttribute("href", url);
-            link.setAttribute("download", `refund_tickets_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.visibility = 'hidden';
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showNotification('Data exported!', 'success');
+                csv.push(headers.join(","));
+                
+                refundTickets.forEach(ticket => {
+                    const row = [
+                        ticket.srNo || '',
+                        ticket.pnr || '',
+                        `"${ticket.passengerName || ''}"`,
+                        ticket.travelDate || '',
+                        ticket.inboundDate || '',
+                        ticket.expiryDate || '',
+                        ticket.refundType || '',
+                        ticket.sector || '',
+                        ticket.ticketNumber || '',
+                        ticket.airline || '',
+                        ticket.agentName || '',
+                        ticket.vendor || '',
+                        ticket.refundApplyDate || '',
+                        (safeToString(ticket.vendorAmount)).replace(/,/g, ''),
+                        (safeToString(ticket.revToClient)).replace(/,/g, ''),
+                        (safeToString(ticket.earning)).replace(/,/g, ''),
+                        `"${ticket.remarks || ''}"`,
+                        ticket.status || ''
+                    ];
+                    csv.push(row.join(","));
+                });
+                
+                const csvString = csv.join("\n");
+                const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", `refund_tickets_${new Date().toISOString().split('T')[0]}.csv`);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    showNotification('Export started! Check your downloads.', 'success');
+                } else {
+                    // Fallback for older browsers
+                    window.open('data:text/csv;charset=utf-8,' + encodeURIComponent(csvString));
+                    showNotification('Export opened in new window', 'success');
+                }
+                
+            } catch (error) {
+                console.error('Error exporting data:', error);
+                showNotification('Export failed: ' + error.message, 'error');
+            }
         }
         
         // Function to show notification
         function showNotification(message, type = 'info') {
+            // Remove any existing notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(n => n.remove());
+            
             const notification = document.createElement('div');
             notification.className = `notification notification-${type}`;
             notification.textContent = message;
@@ -889,7 +1002,7 @@
                 top: 15px;
                 right: 15px;
                 padding: 12px 18px;
-                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#667eea'};
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : type === 'info' ? '#667eea' : '#f59e0b'};
                 color: white;
                 border-radius: 6px;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -915,17 +1028,15 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Dashboard initializing...');
             
+            // Add event listeners to buttons
+            document.getElementById('refreshButton').addEventListener('click', loadTickets);
+            document.getElementById('exportButton').addEventListener('click', exportToExcel);
+            
             // Load tickets immediately
             loadTickets();
             
             // Auto-refresh every 30 seconds
             setInterval(loadTickets, 30000);
-            
-            // Make functions available globally
-            window.loadTickets = loadTickets;
-            window.exportToExcel = exportToExcel;
-            window.editTicket = editTicket;
-            window.deleteTicket = deleteTicket;
         });
 
     </script>
