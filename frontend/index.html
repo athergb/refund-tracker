@@ -282,15 +282,25 @@
                 try {
                     // Prepare data for Supabase
                     const ticketData = {
-                        ticket_number: document.getElementById('ticketNumber').value.trim(),
+                        sr_no: document.getElementById('srNo').value,
                         pnr: document.getElementById('pnr').value.trim(),
                         passenger_name: document.getElementById('passengerName').value.trim(),
                         travel_date: document.getElementById('travelDate').value,
+                        inbound_date: document.getElementById('inboundDate').value,
                         expiry_date: document.getElementById('expiryDate').value,
-                        vendor: document.getElementById('vendor').value || 'OTHER',
-                        vendor_amount: document.getElementById('vendorAmount').value || '0',
-                        status: 'PENDING' // Default status
-                    };
+                        refund_type: document.getElementById('refundType').value,
+                        sector: document.getElementById('sector').value.trim(),
+                        ticket_no: document.getElementById('ticketNo').value.trim(), // FIXED: Should be 'ticket_no'
+                        airline: document.getElementById('airline').value.trim(),
+                        agent_name: document.getElementById('agentName').value.trim(),
+                        vendor: document.getElementById('vendor').value,
+                        refund_apply_date: document.getElementById('refundApplyDate').value,
+                        ven_amount: document.getElementById('venAmount').value || '0', // FIXED: Should be 'ven_amount'
+                        rev_to_client: document.getElementById('revToClient').value || '0',
+                        earning: document.getElementById('earning').value || '0',
+                        remarks: document.getElementById('remarks').value.trim(),
+                        status: 'PENDING'
+                };
                     
                     console.log('Saving to Supabase:', ticketData);
                     
